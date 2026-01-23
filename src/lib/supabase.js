@@ -449,7 +449,7 @@ export const subscribeToChatMessages = (crewId, callback) => {
 
 // ============ BOARD MARKET FUNCTIONS ============
 
-export const getListings = async (filters = {}) => {
+export const getListings = async (filters = {}, limit = 12, offset = 0) => {
   let query = supabase
     .from('board_listings')
     .select('*')
@@ -472,7 +472,7 @@ export const getListings = async (filters = {}) => {
     query = query.ilike('location', `%${filters.location}%`)
   }
 
-  return await query.limit(50)
+  return await query.range(offset, offset + limit - 1)
 }
 
 export const getMyListings = async (userId) => {

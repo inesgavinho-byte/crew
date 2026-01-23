@@ -84,6 +84,9 @@ export default function Market() {
     minPrice: '',
     maxPrice: ''
   })
+  const [hasMore, setHasMore] = useState(true)
+  const [loadingMore, setLoadingMore] = useState(false)
+  const [currentFilters, setCurrentFilters] = useState({})
 
   useEffect(() => {
     loadListings()
@@ -91,9 +94,32 @@ export default function Market() {
 
   const loadListings = async (appliedFilters = {}) => {
     setLoading(true)
-    const { data } = await getListings(appliedFilters)
-    if (data) setListings(data)
+    const { data } = await getListings(appliedFilters, 12, 0)
+    if (data) {
+      setListings(data)
+      setHasMore(data.length === 12)
+      setCurrentFilters(appliedFilters)
+    }
     setLoading(false)
+  }
+
+  const loadMore = async () => {
+    if (loadingMore || !hasMore) return
+
+    setLoadingMore(true)
+    try {
+      const { data } = await getListings(currentFilters, 12, listings.length)
+      if (data && data.length > 0) {
+        setListings(prev => [...prev, ...data])
+        setHasMore(data.length === 12)
+      } else {
+        setHasMore(false)
+      }
+    } catch (err) {
+      console.error('Error loading more listings:', err)
+    } finally {
+      setLoadingMore(false)
+    }
   }
 
   const handleFilterChange = (key, value) => {
@@ -251,15 +277,36 @@ export default function Market() {
             </button>
           </div>
         ) : (
-          <div className="market-grid">
-            {listings.map(listing => (
-              <ListingCard 
-                key={listing.id} 
-                listing={listing}
-                onClick={() => setSelectedListing(listing)}
-              />
-            ))}
-          </div>
+          <>
+            <div className="market-grid">
+              {listings.map(listing => (
+                <ListingCard
+                  key={listing.id}
+                  listing={listing}
+                  onClick={() => setSelectedListing(listing)}
+                />
+              ))}
+            </div>
+
+            {/* Load More Button */}
+            {hasMore && (
+              <div style={{ textAlign: 'center', padding: '40px 0' }}>
+                <button
+                  className="btn-secondary"
+                  onClick={loadMore}
+                  disabled={loadingMore}
+                >
+                  {loadingMore ? 'Loading...' : 'Load More Boards'}
+                </button>
+              </div>
+            )}
+
+            {!hasMore && listings.length > 0 && (
+              <div style={{ textAlign: 'center', padding: '40px 0', color: 'var(--text-muted)', fontSize: '14px' }}>
+                That's all the boards!
+              </div>
+            )}
+          </>
         )}
       </main>
 
