@@ -59,6 +59,8 @@ export default function Feed() {
   const [newSignalIds, setNewSignalIds] = useState(new Set())
   const [showNotifications, setShowNotifications] = useState(false)
   const [unreadMsgCount, setUnreadMsgCount] = useState(0)
+  const [hasMore, setHasMore] = useState(true)
+  const [loadingMore, setLoadingMore] = useState(false)
   const crewIdsRef = useRef([])
 
   useEffect(() => {
@@ -143,17 +145,23 @@ export default function Feed() {
         setCrews(crewsData)
         const crewIds = crewsData.map(c => c.crew_id)
         crewIdsRef.current = crewIds
-        // Load signals from crews AND followed users
-        const { data: signalsData } = await getFollowingSignalsFeed(crewIds)
-        if (signalsData) setSignals(signalsData)
+        // Load signals from crews AND followed users (first page - 20 items)
+        const { data: signalsData } = await getFollowingSignalsFeed(crewIds, 20, 0)
+        if (signalsData) {
+          setSignals(signalsData)
+          setHasMore(signalsData.length === 20)
+        }
       } else {
         // No crews, but still show signals from followed users
-        const { data: signalsData } = await getFollowingSignalsFeed([])
-        if (signalsData) setSignals(signalsData)
+        const { data: signalsData } = await getFollowingSignalsFeed([], 20, 0)
+        if (signalsData) {
+          setSignals(signalsData)
+          setHasMore(signalsData.length === 20)
+        }
       }
       const { data: spotsData } = await getSpots()
       if (spotsData) setSpots(spotsData)
-      
+
       // Load unread message count
       const msgCount = await getUnreadCount()
       setUnreadMsgCount(msgCount)
@@ -161,6 +169,29 @@ export default function Feed() {
       console.error('Error loading data:', err)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const loadMore = async () => {
+    if (loadingMore || !hasMore) return
+
+    setLoadingMore(true)
+    try {
+      const { data: moreSignals } = await getFollowingSignalsFeed(
+        crewIdsRef.current,
+        20,
+        signals.length
+      )
+      if (moreSignals && moreSignals.length > 0) {
+        setSignals(prev => [...prev, ...moreSignals])
+        setHasMore(moreSignals.length === 20)
+      } else {
+        setHasMore(false)
+      }
+    } catch (err) {
+      console.error('Error loading more signals:', err)
+    } finally {
+      setLoadingMore(false)
     }
   }
 
@@ -330,59 +361,80 @@ export default function Feed() {
             <p>No signals yet. Be the first to check in!</p>
           </div>
         ) : (
-          signals.map(signal => (
-            <div key={signal.id} className={`card signal-card ${newSignalIds.has(signal.id) ? 'signal-new' : ''}`}>
-              <div className="signal-header">
-                <div className="signal-user">
-                  <Link to={`/profile/${signal.user_id}`} className="avatar-link">
-                    <div className="avatar">
-                      {signal.username?.charAt(0).toUpperCase()}
-                    </div>
-                  </Link>
-                  <div className="user-info">
-                    <Link to={`/profile/${signal.user_id}`} className="user-name-link">
-                      {signal.username}
+          <>
+            {signals.map(signal => (
+              <div key={signal.id} className={`card signal-card ${newSignalIds.has(signal.id) ? 'signal-new' : ''}`}>
+                <div className="signal-header">
+                  <div className="signal-user">
+                    <Link to={`/profile/${signal.user_id}`} className="avatar-link">
+                      <div className="avatar">
+                        {signal.username?.charAt(0).toUpperCase()}
+                      </div>
                     </Link>
-                    <span className="user-crew">
-                      <SportIcon sport={signal.crew_sport} size={14} color="var(--seafoam)" />
-                      {signal.crew_name}
-                    </span>
+                    <div className="user-info">
+                      <Link to={`/profile/${signal.user_id}`} className="user-name-link">
+                        {signal.username}
+                      </Link>
+                      <span className="user-crew">
+                        <SportIcon sport={signal.crew_sport} size={14} color="var(--seafoam)" />
+                        {signal.crew_name}
+                      </span>
+                    </div>
                   </div>
+                  <span className="signal-time">{formatTime(signal.created_at)}</span>
                 </div>
-                <span className="signal-time">{formatTime(signal.created_at)}</span>
-              </div>
 
-              <div className="signal-spot">
-                <PinIcon size={18} />
-                <span className="spot-name">{signal.spot_name}</span>
-              </div>
+                <div className="signal-spot">
+                  <PinIcon size={18} />
+                  <span className="spot-name">{signal.spot_name}</span>
+                </div>
 
-              <div className="signal-badges">
-                <span className={`badge badge-${signal.condition}`}>
-                  <ConditionIcon condition={signal.condition} size={16} />
-                  <span>{signal.condition}</span>
-                </span>
-                {signal.size && (
-                  <span className="badge-size">{signal.size}</span>
-                )}
-                {signal.wind && (
-                  <span className="badge-wind">
-                    <WindIcon size={14} />
-                    {signal.wind}
+                <div className="signal-badges">
+                  <span className={`badge badge-${signal.condition}`}>
+                    <ConditionIcon condition={signal.condition} size={16} />
+                    <span>{signal.condition}</span>
                   </span>
-                )}
-                {signal.crowd && (
-                  <span className={`badge-crowd badge-crowd-${signal.crowd}`}>
-                    {signal.crowd}
-                  </span>
+                  {signal.size && (
+                    <span className="badge-size">{signal.size}</span>
+                  )}
+                  {signal.wind && (
+                    <span className="badge-wind">
+                      <WindIcon size={14} />
+                      {signal.wind}
+                    </span>
+                  )}
+                  {signal.crowd && (
+                    <span className={`badge-crowd badge-crowd-${signal.crowd}`}>
+                      {signal.crowd}
+                    </span>
+                  )}
+                </div>
+
+                {signal.note && (
+                  <p className="signal-note">"{signal.note}"</p>
                 )}
               </div>
+            ))}
 
-              {signal.note && (
-                <p className="signal-note">"{signal.note}"</p>
-              )}
-            </div>
-          ))
+            {/* Load More Button */}
+            {hasMore && (
+              <div style={{ textAlign: 'center', padding: '20px 0' }}>
+                <button
+                  className="btn-secondary"
+                  onClick={loadMore}
+                  disabled={loadingMore}
+                >
+                  {loadingMore ? 'Loading...' : 'Load More'}
+                </button>
+              </div>
+            )}
+
+            {!hasMore && signals.length > 0 && (
+              <div style={{ textAlign: 'center', padding: '20px 0', color: 'var(--text-muted)', fontSize: '14px' }}>
+                That's all the signals!
+              </div>
+            )}
+          </>
         )}
       </main>
 

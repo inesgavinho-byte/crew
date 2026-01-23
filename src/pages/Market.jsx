@@ -2,11 +2,14 @@ import { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../lib/AuthContext'
 import { useNotifications } from '../lib/NotificationContext'
-import { 
-  getListings, 
-  createListing, 
+import {
+  getListings,
+  createListing,
   expressInterest,
-  uploadImage 
+  uploadImage,
+  updateListing,
+  deleteListing,
+  markListingAsSold
 } from '../lib/supabase'
 import { FinLogo, WaveIcon, CrewsIcon, MapIcon, UserIcon, SurfboardIcon, PinIcon, MessageIcon } from '../components/Icons'
 
@@ -607,6 +610,14 @@ function ListingDetailModal({ listing, currentUser, currentUsername, onClose, on
   const [message, setMessage] = useState('')
   const [sending, setSending] = useState(false)
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0)
+  const [isEditing, setIsEditing] = useState(false)
+  const [editForm, setEditForm] = useState({
+    title: listing.title,
+    description: listing.description || '',
+    price: listing.price,
+    size: listing.size || '',
+    location: listing.location || ''
+  })
   const condition = CONDITIONS.find(c => c.value === listing.condition)
   const isOwner = listing.user_id === currentUser?.id
 
@@ -617,6 +628,42 @@ function ListingDetailModal({ listing, currentUser, currentUsername, onClose, on
       onInterestSent()
     } catch (err) {
       console.error('Error expressing interest:', err)
+    }
+    setSending(false)
+  }
+
+  const handleEditChange = (key, value) => {
+    setEditForm({ ...editForm, [key]: value })
+  }
+
+  const handleSaveEdit = async () => {
+    setSending(true)
+    try {
+      await updateListing(listing.id, {
+        title: editForm.title.trim(),
+        description: editForm.description.trim() || null,
+        price: parseInt(editForm.price),
+        size: editForm.size.trim() || null,
+        location: editForm.location.trim() || null
+      })
+      onInterestSent() // Refresh the list
+      onClose()
+    } catch (err) {
+      console.error('Error updating listing:', err)
+    }
+    setSending(false)
+  }
+
+  const handleMarkSold = async () => {
+    if (!confirm('Marcar esta prancha como vendida?')) return
+
+    setSending(true)
+    try {
+      await markListingAsSold(listing.id)
+      onInterestSent() // Refresh the list
+      onClose()
+    } catch (err) {
+      console.error('Error marking as sold:', err)
     }
     setSending(false)
   }
@@ -712,10 +759,90 @@ function ListingDetailModal({ listing, currentUser, currentUsername, onClose, on
               </div>
             )}
 
-            {isOwner && (
+            {isOwner && !isEditing && (
               <div className="listing-owner-actions">
-                <button className="btn-secondary">Edit Listing</button>
-                <button className="btn-danger">Mark as Sold</button>
+                <button className="btn-secondary" onClick={() => setIsEditing(true)}>
+                  Edit Listing
+                </button>
+                <button className="btn-danger" onClick={handleMarkSold} disabled={sending}>
+                  {sending ? 'Saving...' : 'Mark as Sold'}
+                </button>
+              </div>
+            )}
+
+            {isOwner && isEditing && (
+              <div className="listing-edit-form">
+                <div className="form-group">
+                  <label className="form-label">Título</label>
+                  <input
+                    type="text"
+                    className="form-input"
+                    value={editForm.title}
+                    onChange={(e) => handleEditChange('title', e.target.value)}
+                    required
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">Descrição</label>
+                  <textarea
+                    className="form-textarea"
+                    value={editForm.description}
+                    onChange={(e) => handleEditChange('description', e.target.value)}
+                    rows={4}
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">Preço (€)</label>
+                  <input
+                    type="number"
+                    className="form-input"
+                    value={editForm.price}
+                    onChange={(e) => handleEditChange('price', e.target.value)}
+                    required
+                    min="0"
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">Tamanho</label>
+                  <input
+                    type="text"
+                    className="form-input"
+                    value={editForm.size}
+                    onChange={(e) => handleEditChange('size', e.target.value)}
+                    placeholder="e.g. 6'2\""
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">Localização</label>
+                  <input
+                    type="text"
+                    className="form-input"
+                    value={editForm.location}
+                    onChange={(e) => handleEditChange('location', e.target.value)}
+                    placeholder="e.g. Lisboa"
+                  />
+                </div>
+
+                <div className="listing-owner-actions">
+                  <button
+                    className="btn-primary"
+                    onClick={handleSaveEdit}
+                    disabled={sending || !editForm.title.trim() || !editForm.price}
+                  >
+                    {sending ? 'Saving...' : 'Save Changes'}
+                  </button>
+                  <button
+                    className="btn-ghost"
+                    onClick={() => setIsEditing(false)}
+                    disabled={sending}
+                  >
+                    Cancel
+                  </button>
+                </div>
               </div>
             )}
           </div>

@@ -637,13 +637,13 @@ export const deleteSpotReview = async (reviewId) => {
 
 // ============ SESSIONS LOG FUNCTIONS ============
 
-export const getUserSessions = async (userId, limit = 20) => {
+export const getUserSessions = async (userId, limit = 10, offset = 0) => {
   return await supabase
     .from('sessions')
     .select('*')
     .eq('user_id', userId)
     .order('session_date', { ascending: false })
-    .limit(limit)
+    .range(offset, offset + limit - 1)
 }
 
 export const getSpotSessions = async (spotName, limit = 10) => {
@@ -1070,22 +1070,22 @@ export const getFollowCounts = async (userId) => {
 }
 
 // Get signals feed filtered by follows
-export const getFollowingSignalsFeed = async (crewIds) => {
+export const getFollowingSignalsFeed = async (crewIds, limit = 20, offset = 0) => {
   const user = await getCurrentUser()
   if (!user) return { data: [], error: null }
-  
+
   // Get IDs of users I follow
   const followingIds = await getFollowingIds()
-  
+
   // Include myself in the feed
   const userIdsToShow = [...followingIds, user.id]
-  
+
   // Get signals from my crews AND from users I follow
   let query = supabase
     .from('signals')
     .select('*')
     .order('created_at', { ascending: false })
-    .limit(50)
+    .range(offset, offset + limit - 1)
   
   // Filter by crew OR by followed users
   if (crewIds.length > 0 && followingIds.length > 0) {

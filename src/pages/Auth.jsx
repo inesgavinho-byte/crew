@@ -46,7 +46,7 @@ export default function Auth() {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: 'https://crewsurfapp.netlify.app'
+          redirectTo: import.meta.env.VITE_APP_URL || window.location.origin
         }
       })
       if (error) throw error

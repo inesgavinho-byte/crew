@@ -62,6 +62,8 @@ export default function Profile() {
   const [followingList, setFollowingList] = useState([])
   const [followLoading, setFollowLoading] = useState(false)
   const [canMessage, setCanMessage] = useState(false)
+  const [hasMoreSessions, setHasMoreSessions] = useState(true)
+  const [loadingMoreSessions, setLoadingMoreSessions] = useState(false)
   const navigate = useNavigate()
   
   const { addNotification } = useNotifications()
@@ -156,9 +158,12 @@ export default function Profile() {
         if (listingsData) setMyListings(listingsData)
       }
 
-      // Load sessions
-      const { data: sessionsData } = await getUserSessions(targetUserId)
-      if (sessionsData) setSessions(sessionsData)
+      // Load sessions (first page - 10 items)
+      const { data: sessionsData } = await getUserSessions(targetUserId, 10, 0)
+      if (sessionsData) {
+        setSessions(sessionsData)
+        setHasMoreSessions(sessionsData.length === 10)
+      }
 
       // Load alerts (only own profile)
       if (isOwnProfile) {
@@ -202,6 +207,29 @@ export default function Profile() {
       console.error('Error loading profile data:', err)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const loadMoreSessions = async () => {
+    if (loadingMoreSessions || !hasMoreSessions) return
+
+    setLoadingMoreSessions(true)
+    try {
+      const { data: moreSessions } = await getUserSessions(
+        targetUserId,
+        10,
+        sessions.length
+      )
+      if (moreSessions && moreSessions.length > 0) {
+        setSessions(prev => [...prev, ...moreSessions])
+        setHasMoreSessions(moreSessions.length === 10)
+      } else {
+        setHasMoreSessions(false)
+      }
+    } catch (err) {
+      console.error('Error loading more sessions:', err)
+    } finally {
+      setLoadingMoreSessions(false)
     }
   }
 
@@ -719,8 +747,9 @@ export default function Profile() {
               <p>{isOwnProfile ? 'No sessions logged yet. Start tracking your surf!' : 'No sessions logged yet.'}</p>
             </div>
           ) : (
-            <div className="sessions-log-grid">
-              {sessions.slice(0, 10).map(session => (
+            <>
+              <div className="sessions-log-grid">
+                {sessions.map(session => (
                 <div key={session.id} className="session-log-card">
                   <div className="session-log-header">
                     <div className="session-log-date">
@@ -776,11 +805,28 @@ export default function Profile() {
                     </div>
                   )}
                 </div>
-              ))}
-            </div>
-          )}
-          {sessions.length > 10 && (
-            <p className="see-more-text">Showing 10 of {sessions.length} sessions</p>
+                ))}
+              </div>
+
+              {/* Load More Button */}
+              {hasMoreSessions && (
+                <div style={{ textAlign: 'center', padding: '20px 0' }}>
+                  <button
+                    className="btn-secondary"
+                    onClick={loadMoreSessions}
+                    disabled={loadingMoreSessions}
+                  >
+                    {loadingMoreSessions ? 'Loading...' : 'Load More Sessions'}
+                  </button>
+                </div>
+              )}
+
+              {!hasMoreSessions && sessions.length > 0 && (
+                <div style={{ textAlign: 'center', padding: '20px 0', color: 'var(--text-muted)', fontSize: '14px' }}>
+                  All sessions loaded
+                </div>
+              )}
+            </>
           )}
         </div>
 

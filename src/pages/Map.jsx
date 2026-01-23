@@ -314,13 +314,12 @@ export default function Map() {
             
             {spotsWithCoords.map(spot => {
               const latestSignal = getLatestSignal(spot.name)
-              const icon = latestSignal ? createConditionIcon(latestSignal.condition) : defaultIcon
-              
+
               return (
                 <Marker
                   key={spot.id}
                   position={[parseFloat(spot.latitude), parseFloat(spot.longitude)]}
-                  icon={icon}
+                  icon={signalIcon}
                   eventHandlers={{
                     click: () => setSelectedSpot(spot)
                   }}
