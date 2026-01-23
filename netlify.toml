@@ -1,0 +1,35 @@
+# Netlify Configuration File
+# Este ficheiro configura automaticamente o build no Netlify
+
+[build]
+  # Comando para fazer build do projeto
+  command = "npm run build"
+  
+  # Pasta onde ficam os ficheiros do build
+  publish = "dist"
+  
+  # Instalar dependências antes do build
+  [build.environment]
+    NODE_VERSION = "18"
+
+# Redirects para SPA (Single Page Application)
+# Garante que o React Router funciona corretamente
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# Headers de segurança
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "camera=(), microphone=(), geolocation=()"
+
+# Cache para assets estáticos
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
