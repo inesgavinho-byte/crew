@@ -13,6 +13,7 @@ import {
 } from '../lib/supabase'
 import { FinLogo, WaveIcon, CrewsIcon, MapIcon, UserIcon, SurfboardIcon, PinIcon, MessageIcon } from '../components/Icons'
 import MobileNav from '../components/MobileNav'
+import LazyImage from '../components/LazyImage'
 
 // Board type icons
 const BoardTypeIcon = ({ type, size = 24 }) => {
@@ -405,7 +406,7 @@ function ListingCard({ listing, onClick }) {
     <div className="listing-card" onClick={onClick}>
       <div className="listing-card-image">
         {mainPhoto ? (
-          <img src={mainPhoto} alt={listing.title} />
+          <LazyImage src={mainPhoto} alt={listing.title} style={{ height: '200px' }} />
         ) : (
           <div className="listing-card-placeholder">
             <SurfboardIcon size={48} color="var(--driftwood)" />

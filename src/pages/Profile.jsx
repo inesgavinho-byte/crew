@@ -9,6 +9,7 @@ import LogSession from '../components/LogSession'
 import CreateAlertModal from '../components/CreateAlertModal'
 import SessionAnalytics from '../components/SessionAnalytics'
 import MobileNav from '../components/MobileNav'
+import LazyImage from '../components/LazyImage'
 
 // Star Rating
 const StarRating = ({ rating, size = 14 }) => (
@@ -591,7 +592,7 @@ export default function Profile() {
               {boards.map(board => (
                 <div key={board.id} className="board-card">
                   {board.photo_url ? (
-                    <img src={board.photo_url} alt={board.name} className="board-photo" />
+                    <LazyImage src={board.photo_url} alt={board.name} className="board-photo" />
                   ) : (
                     <div className="board-photo-placeholder">
                       <SurfboardIcon size={32} color="var(--driftwood)" />
@@ -637,7 +638,7 @@ export default function Profile() {
             <div className="photos-grid">
               {photos.map(photo => (
                 <div key={photo.id} className="photo-card">
-                  <img src={photo.url} alt={photo.caption || 'Session'} className="photo-img" />
+                  <LazyImage src={photo.url} alt={photo.caption || 'Session'} className="photo-img" />
                   {(photo.caption || photo.spot_name) && (
                     <div className="photo-overlay">
                       {photo.spot_name && (
@@ -677,7 +678,7 @@ export default function Profile() {
                   <div key={listing.id} className={`my-listing-card ${listing.status}`}>
                     <div className="my-listing-image">
                       {listing.photos?.[0] ? (
-                        <img src={listing.photos[0]} alt={listing.title} />
+                        <LazyImage src={listing.photos[0]} alt={listing.title} />
                       ) : (
                         <SurfboardIcon size={32} color="var(--driftwood)" />
                       )}

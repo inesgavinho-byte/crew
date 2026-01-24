@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
+import { smartCompress } from './imageUtils'
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
@@ -322,13 +323,16 @@ export const subscribeToVotes = (crewId, callback) => {
 export const uploadImage = async (file, folder = 'photos') => {
   const user = await getCurrentUser()
   if (!user) throw new Error('Not authenticated')
-  
-  const fileExt = file.name.split('.').pop()
+
+  // Compress image if needed
+  const compressedFile = await smartCompress(file)
+
+  const fileExt = compressedFile.name.split('.').pop()
   const fileName = `${user.id}/${folder}/${Date.now()}.${fileExt}`
-  
+
   const { data, error } = await supabase.storage
     .from('uploads')
-    .upload(fileName, file, {
+    .upload(fileName, compressedFile, {
       cacheControl: '3600',
       upsert: false
     })
