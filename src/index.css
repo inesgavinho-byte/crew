@@ -7113,3 +7113,141 @@ body {
     font-size: 28px;
   }
 }
+
+/* ========================================
+   MOBILE NAVIGATION
+   ======================================== */
+
+.mobile-nav {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  /* Hide desktop left sidebar on mobile */
+  .sidebar-left {
+    display: none;
+  }
+
+  /* Show mobile bottom navigation */
+  .mobile-nav {
+    display: flex;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--deep-ocean);
+    border-top: 2px solid var(--seafoam);
+    padding: 8px 0 max(8px, env(safe-area-inset-bottom));
+    z-index: 1000;
+    box-shadow: 0 -4px 20px rgba(0,0,0,0.15);
+  }
+
+  .mobile-nav-content {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .mobile-nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 8px 12px;
+    text-decoration: none;
+    color: rgba(255,255,255,0.7);
+    font-size: 11px;
+    font-family: var(--font-condensed);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    transition: all 0.2s ease;
+    position: relative;
+    flex: 1;
+    max-width: 80px;
+  }
+
+  .mobile-nav-item svg {
+    transition: all 0.2s ease;
+  }
+
+  .mobile-nav-item.active {
+    color: var(--seafoam);
+  }
+
+  .mobile-nav-item.active svg {
+    transform: scale(1.1);
+  }
+
+  .mobile-nav-item:active {
+    transform: scale(0.95);
+  }
+
+  /* Unread badge */
+  .mobile-nav-badge {
+    position: absolute;
+    top: 4px;
+    right: 8px;
+    background: var(--faded-coral);
+    color: white;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 5px;
+    border-radius: 10px;
+    min-width: 18px;
+    text-align: center;
+    line-height: 1;
+  }
+
+  /* Adjust main content for mobile */
+  .main-content {
+    padding-bottom: 80px; /* Space for bottom nav */
+  }
+
+  /* Hide right sidebar on mobile by default */
+  .sidebar-right {
+    display: none;
+  }
+
+  /* Full width main content on mobile */
+  .app {
+    display: block;
+  }
+
+  .main-content {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  /* Page header adjustments for mobile */
+  .page-header {
+    flex-direction: column;
+    gap: 12px;
+    align-items: flex-start;
+  }
+
+  .page-title {
+    font-size: 28px;
+  }
+
+  .page-subtitle {
+    font-size: 14px;
+  }
+}
+
+/* Tablet view - show sidebar but smaller */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .sidebar-left {
+    width: 200px;
+  }
+
+  .sidebar-right {
+    display: none;
+  }
+
+  .main-content {
+    flex: 1;
+  }
+}

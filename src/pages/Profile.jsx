@@ -8,6 +8,7 @@ import { FinLogo, WaveIcon, CrewsIcon, MapIcon, PlusIcon, CameraIcon, EditIcon, 
 import LogSession from '../components/LogSession'
 import CreateAlertModal from '../components/CreateAlertModal'
 import SessionAnalytics from '../components/SessionAnalytics'
+import MobileNav from '../components/MobileNav'
 
 // Star Rating
 const StarRating = ({ rating, size = 14 }) => (
@@ -1065,6 +1066,9 @@ export default function Profile() {
           </div>
         </div>
       )}
+
+      {/* Mobile Navigation */}
+      <MobileNav profile={myProfile} />
     </div>
   )
 }

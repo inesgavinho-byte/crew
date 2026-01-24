@@ -11,6 +11,7 @@ import SpotDetail from '../components/SpotDetail'
 import CreateAlertModal from '../components/CreateAlertModal'
 import CheckInModal from '../components/CheckInModal'
 import TideChart from '../components/TideChart'
+import MobileNav from '../components/MobileNav'
 import 'leaflet/dist/leaflet.css'
 
 // Condition icon component
@@ -730,6 +731,9 @@ export default function Map() {
           addNotification={addNotification}
         />
       )}
+
+      {/* Mobile Navigation */}
+      <MobileNav profile={profile} />
     </div>
   )
 }

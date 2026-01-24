@@ -3,6 +3,7 @@ import { Link, useParams, useNavigate } from 'react-router-dom'
 import { useAuth } from '../lib/AuthContext'
 import { supabase, getConversations, getMessages, sendDirectMessage, markMessagesAsRead, getUnreadCount } from '../lib/supabase'
 import { FinLogo, WaveIcon, CrewsIcon, MapIcon, MarketIcon, MessageIcon } from '../components/Icons'
+import MobileNav from '../components/MobileNav'
 
 // Notification sound (base64 encoded short beep)
 const playNotificationSound = () => {
@@ -371,4 +372,7 @@ export default function Messages() {
       </main>
     </div>
   )
+
+      {/* Mobile Navigation */}
+      <MobileNav profile={profile} />
 }

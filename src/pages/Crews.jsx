@@ -4,6 +4,7 @@ import { useAuth } from '../lib/AuthContext'
 import { getMyCrews, createCrew, getCrewMembers, getPendingMembers, getPendingInvites, acceptInvite, declineInvite, getPublicCrews, joinCrewByCode } from '../lib/supabase'
 import { useNotifications } from '../lib/NotificationContext'
 import { FinLogo, WaveIcon, CrewsIcon, ArrowIcon, PlusIcon, MapIcon, MarketIcon, UserIcon, SurfboardIcon, BodyboardIcon, SupIcon, KiteIcon, SkateIcon, BikeIcon, RunIcon, TribeIcon, MessageIcon } from '../components/Icons'
+import MobileNav from '../components/MobileNav'
 
 // Sport icon component
 const SportIcon = ({ sport, size = 32 }) => {
@@ -402,4 +403,7 @@ function CreateCrewModal({ onClose, onSuccess }) {
       </div>
     </div>
   )
+
+      {/* Mobile Navigation */}
+      <MobileNav profile={profile} />
 }

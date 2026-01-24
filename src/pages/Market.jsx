@@ -12,6 +12,7 @@ import {
   markListingAsSold
 } from '../lib/supabase'
 import { FinLogo, WaveIcon, CrewsIcon, MapIcon, UserIcon, SurfboardIcon, PinIcon, MessageIcon } from '../components/Icons'
+import MobileNav from '../components/MobileNav'
 
 // Board type icons
 const BoardTypeIcon = ({ type, size = 24 }) => {
@@ -913,6 +914,9 @@ function ListingDetailModal({ listing, currentUser, currentUsername, onClose, on
           </div>
         </div>
       </div>
+
+      {/* Mobile Navigation */}
+      <MobileNav profile={profile} />
     </div>
   )
 }

@@ -6,6 +6,7 @@ import { supabase, getMyCrews, getFollowingSignalsFeed, getSpots, getUnreadCount
 import { FinLogo, WaveIcon, CrewsIcon, PinIcon, WindIcon, ModalWave, MapIcon, MarketIcon, UserIcon, BellIcon, GlassyIcon, CleanIcon, ChoppyIcon, BlownIcon, FlatIcon, SurfboardIcon, BodyboardIcon, SupIcon, KiteIcon, SkateIcon, BikeIcon, RunIcon, TribeIcon, MessageIcon } from '../components/Icons'
 import LogSession from '../components/LogSession'
 import CheckInModal from '../components/CheckInModal'
+import MobileNav from '../components/MobileNav'
 
 // Condition icon component
 const ConditionIcon = ({ condition, size = 18 }) => {
@@ -505,6 +506,9 @@ export default function Feed() {
           }}
         />
       )}
+
+      {/* Mobile Navigation */}
+      <MobileNav unreadMessages={unreadMsgCount} profile={profile} />
     </div>
   )
 }

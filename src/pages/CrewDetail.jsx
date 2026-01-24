@@ -3,8 +3,11 @@ import { useParams, useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '../lib/AuthContext'
 import { supabase } from '../lib/supabase'
 import { FinLogo, WaveIcon, CrewsIcon, MapIcon, MarketIcon, UserIcon, ChatIcon, SurfboardIcon, BodyboardIcon, SupIcon, KiteIcon, SkateIcon, BikeIcon, RunIcon, TribeIcon, MessageIcon } from '../components/Icons'
+import MobileNav from '../components/MobileNav'
 import ChatSidebar from '../components/ChatSidebar'
+import MobileNav from '../components/MobileNav'
 import InvitePanel from '../components/InvitePanel'
+import MobileNav from '../components/MobileNav'
 
 // Sport icon component
 const SportIcon = ({ sport, size = 32, color = 'var(--deep-ocean)' }) => {
@@ -522,4 +525,7 @@ function PendingMemberCard({ member, currentUserId, totalMembers, onVote, loadin
       </div>
     </div>
   )
+
+      {/* Mobile Navigation */}
+      <MobileNav profile={profile} />
 }
