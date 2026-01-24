@@ -125,7 +125,7 @@ export const createCrew = async (name, emoji, description, sport) => {
       emoji: emoji || '🌊',
       description: description,
       sport: sport || 'surf',
-      created_by: user.id
+      creator_id: user.id
     })
     .select()
     .single()
