@@ -82,7 +82,8 @@ export default function Market() {
     board_type: '',
     condition: '',
     minPrice: '',
-    maxPrice: ''
+    maxPrice: '',
+    searchText: ''
   })
   const [hasMore, setHasMore] = useState(true)
   const [loadingMore, setLoadingMore] = useState(false)
@@ -133,11 +134,12 @@ export default function Market() {
     if (filters.condition) cleanFilters.condition = filters.condition
     if (filters.minPrice) cleanFilters.minPrice = parseInt(filters.minPrice)
     if (filters.maxPrice) cleanFilters.maxPrice = parseInt(filters.maxPrice)
+    if (filters.searchText) cleanFilters.searchText = filters.searchText
     loadListings(cleanFilters)
   }
 
   const clearFilters = () => {
-    setFilters({ board_type: '', condition: '', minPrice: '', maxPrice: '' })
+    setFilters({ board_type: '', condition: '', minPrice: '', maxPrice: '', searchText: '' })
     loadListings()
   }
 
@@ -220,8 +222,24 @@ export default function Market() {
 
         {/* Filters */}
         <div className="market-filters">
-          <select 
-            value={filters.board_type} 
+          <input
+            type="text"
+            placeholder="Search boards..."
+            value={filters.searchText}
+            onChange={e => handleFilterChange('searchText', e.target.value)}
+            className="market-search-input"
+            style={{
+              padding: '10px 12px',
+              border: '1px solid var(--sand-dark)',
+              borderRadius: '8px',
+              fontSize: '14px',
+              fontFamily: 'var(--font-body)',
+              minWidth: '200px'
+            }}
+          />
+
+          <select
+            value={filters.board_type}
             onChange={e => handleFilterChange('board_type', e.target.value)}
             className="market-filter-select"
           >

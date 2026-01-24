@@ -4,9 +4,9 @@ import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from 're
 import L from 'leaflet'
 import { useAuth } from '../lib/AuthContext'
 import { useNotifications } from '../lib/NotificationContext'
-import { supabase, getSpots, getMyCrews, getSignalsFeed } from '../lib/supabase'
+import { supabase, getSpots, searchSpots, getMyCrews, getSignalsFeed } from '../lib/supabase'
 import { getForecast, degreesToDirection } from '../lib/forecast'
-import { FinLogo, WaveIcon, CrewsIcon, PinIcon, MapIcon, MarketIcon, UserIcon, WindIcon, GlassyIcon, CleanIcon, ChoppyIcon, BlownIcon, FlatIcon, RatingDots, BellIcon, MessageIcon } from '../components/Icons'
+import { FinLogo, WaveIcon, CrewsIcon, PinIcon, MapIcon, MarketIcon, UserIcon, WindIcon, GlassyIcon, CleanIcon, ChoppyIcon, BlownIcon, FlatIcon, RatingDots, BellIcon, MessageIcon, SearchIcon } from '../components/Icons'
 import SpotDetail from '../components/SpotDetail'
 import CreateAlertModal from '../components/CreateAlertModal'
 import CheckInModal from '../components/CheckInModal'
@@ -95,6 +95,9 @@ export default function Map() {
   const [forecastLoading, setForecastLoading] = useState(false)
   const [mapCenter, setMapCenter] = useState({ lat: 39.5, lng: -8.5 })
   const [showTide, setShowTide] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [searchResults, setSearchResults] = useState([])
+  const [searching, setSearching] = useState(false)
   const crewIdsRef = useRef([])
 
   // Portugal center
@@ -213,6 +216,21 @@ export default function Map() {
     choppy: '#E88C3A',
     blown: '#E85D3B',
     flat: '#888888'
+  }
+
+  const handleSearch = async (query) => {
+    setSearchQuery(query)
+    if (!query.trim()) {
+      setSearchResults([])
+      return
+    }
+
+    setSearching(true)
+    const { data } = await searchSpots(query)
+    if (data) {
+      setSearchResults(data)
+    }
+    setSearching(false)
   }
 
   return (
@@ -610,12 +628,42 @@ export default function Map() {
           </div>
         ) : (
           <div className="sidebar-section">
-            <h3 className="sidebar-title">Spots ({spots.length})</h3>
-            <p style={{ fontSize: '13px', color: '#888', marginBottom: '16px' }}>
-              Click a spot for forecast
-            </p>
-            <div style={{ maxHeight: '60vh', overflowY: 'auto' }}>
-              {spots.map(spot => (
+            <h3 className="sidebar-title">Spots ({searchQuery ? searchResults.length : spots.length})</h3>
+
+            {/* Search Input */}
+            <div style={{ position: 'relative', marginBottom: '16px' }}>
+              <input
+                type="text"
+                placeholder="Search spots..."
+                value={searchQuery}
+                onChange={(e) => handleSearch(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '8px 32px 8px 12px',
+                  border: '1px solid var(--sand-dark)',
+                  borderRadius: '8px',
+                  fontSize: '14px',
+                  fontFamily: 'var(--font-body)'
+                }}
+              />
+              <SearchIcon
+                size={16}
+                color="var(--text-muted)"
+                style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}
+              />
+            </div>
+
+            {searching ? (
+              <p style={{ fontSize: '13px', color: '#888', textAlign: 'center', padding: '20px 0' }}>
+                Searching...
+              </p>
+            ) : (
+              <>
+                <p style={{ fontSize: '13px', color: '#888', marginBottom: '16px' }}>
+                  {searchQuery ? `${searchResults.length} result${searchResults.length !== 1 ? 's' : ''}` : 'Click a spot for forecast'}
+                </p>
+                <div style={{ maxHeight: '60vh', overflowY: 'auto' }}>
+                  {(searchQuery ? searchResults : spots).map(spot => (
                 <div 
                   key={spot.id} 
                   className="spot-item spot-item-clickable"
@@ -630,8 +678,10 @@ export default function Map() {
                     </span>
                   </span>
                 </div>
-              ))}
-            </div>
+                  ))}
+                </div>
+              </>
+            )}
           </div>
         )}
       </aside>

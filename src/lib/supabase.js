@@ -270,6 +270,21 @@ export const getSpots = async () => {
   return { data, error }
 }
 
+// Search spots by name or location
+export const searchSpots = async (query) => {
+  if (!query || query.trim() === '') {
+    return await getSpots()
+  }
+
+  const { data, error } = await supabase
+    .from('spots')
+    .select('*')
+    .or(`name.ilike.%${query}%,location.ilike.%${query}%,description.ilike.%${query}%`)
+    .order('name')
+    .limit(20)
+  return { data, error }
+}
+
 // Realtime subscriptions
 export const subscribeToSignals = (crewIds, callback) => {
   return supabase
@@ -470,6 +485,9 @@ export const getListings = async (filters = {}, limit = 12, offset = 0) => {
   }
   if (filters.location) {
     query = query.ilike('location', `%${filters.location}%`)
+  }
+  if (filters.searchText) {
+    query = query.or(`title.ilike.%${filters.searchText}%,description.ilike.%${filters.searchText}%`)
   }
 
   return await query.range(offset, offset + limit - 1)
