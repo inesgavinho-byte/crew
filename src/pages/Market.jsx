@@ -879,7 +879,7 @@ function ListingDetailModal({ listing, currentUser, currentUsername, onClose, on
                     className="form-input"
                     value={editForm.size}
                     onChange={(e) => handleEditChange('size', e.target.value)}
-                    placeholder="e.g. 6'2\""
+                    placeholder="e.g. 6'2"
                   />
                 </div>
 
