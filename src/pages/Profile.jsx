@@ -7,6 +7,7 @@ import { useNotifications } from '../lib/NotificationContext'
 import { FinLogo, WaveIcon, CrewsIcon, MapIcon, PlusIcon, CameraIcon, EditIcon, UserIcon, MarketIcon, SurfboardIcon, BodyboardIcon, SupIcon, KiteIcon, SkateIcon, BikeIcon, RunIcon, TribeIcon, PinIcon, BellIcon, MessageIcon } from '../components/Icons'
 import LogSession from '../components/LogSession'
 import CreateAlertModal from '../components/CreateAlertModal'
+import SessionAnalytics from '../components/SessionAnalytics'
 
 // Star Rating
 const StarRating = ({ rating, size = 14 }) => (
@@ -726,6 +727,19 @@ export default function Profile() {
                 ))}
               </div>
             )}
+          </div>
+        )}
+
+        {/* Session Analytics */}
+        {isOwnProfile && sessions.length > 0 && (
+          <div className="profile-section">
+            <div className="section-header">
+              <h2 className="section-title">
+                <WaveIcon size={22} color="var(--deep-ocean)" />
+                <span>Estatísticas</span>
+              </h2>
+            </div>
+            <SessionAnalytics userId={targetUserId} />
           </div>
         )}
 

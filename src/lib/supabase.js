@@ -704,6 +704,79 @@ export const linkSessionToSignal = async (sessionId, signalId) => {
     .eq('id', sessionId)
 }
 
+// Get session analytics for a user
+export const getSessionAnalytics = async (userId) => {
+  // Get all sessions for analytics
+  const { data: sessions, error } = await supabase
+    .from('sessions')
+    .select('*')
+    .eq('user_id', userId)
+    .order('session_date', { ascending: false })
+
+  if (error || !sessions) return { data: null, error }
+
+  // Calculate analytics
+  const totalSessions = sessions.length
+  const totalMinutes = sessions.reduce((sum, s) => sum + (s.duration_minutes || 0), 0)
+  const totalHours = Math.round(totalMinutes / 60 * 10) / 10
+
+  // Average rating
+  const ratedSessions = sessions.filter(s => s.rating)
+  const avgRating = ratedSessions.length > 0
+    ? Math.round(ratedSessions.reduce((sum, s) => sum + s.rating, 0) / ratedSessions.length * 10) / 10
+    : 0
+
+  // Favorite spots (top 5)
+  const spotCounts = {}
+  sessions.forEach(s => {
+    if (s.spot_name) {
+      spotCounts[s.spot_name] = (spotCounts[s.spot_name] || 0) + 1
+    }
+  })
+  const favoriteSpots = Object.entries(spotCounts)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5)
+    .map(([spot, count]) => ({ spot, count }))
+
+  // Sessions per month (last 12 months)
+  const monthlyData = []
+  const now = new Date()
+  for (let i = 11; i >= 0; i--) {
+    const month = new Date(now.getFullYear(), now.getMonth() - i, 1)
+    const monthStr = month.toLocaleDateString('pt-PT', { month: 'short', year: 'numeric' })
+    const count = sessions.filter(s => {
+      const sessionDate = new Date(s.session_date)
+      return sessionDate.getMonth() === month.getMonth() &&
+             sessionDate.getFullYear() === month.getFullYear()
+    }).length
+    monthlyData.push({ month: monthStr, count })
+  }
+
+  // Board usage
+  const boardCounts = {}
+  sessions.forEach(s => {
+    if (s.board_name) {
+      boardCounts[s.board_name] = (boardCounts[s.board_name] || 0) + 1
+    }
+  })
+  const boardUsage = Object.entries(boardCounts)
+    .sort((a, b) => b[1] - a[1])
+    .map(([board, count]) => ({ board, count }))
+
+  return {
+    data: {
+      totalSessions,
+      totalHours,
+      avgRating,
+      favoriteSpots,
+      monthlyData,
+      boardUsage,
+      lastSession: sessions[0] || null
+    },
+    error: null
+  }
+}
+
 // ============ CONDITION ALERTS FUNCTIONS ============
 
 export const getUserAlerts = async (userId) => {
