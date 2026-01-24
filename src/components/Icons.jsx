@@ -198,6 +198,12 @@ export const SearchIcon = ({ size = 24, color = 'currentColor' }) => (
   </svg>
 )
 
+export const StarIcon = ({ size = 24, color = 'currentColor' }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill={color} stroke={color} strokeWidth="1" strokeLinecap="round" strokeLinejoin="round">
+    <polygon points="12,2 15,8.5 22,9.5 17,14.5 18,21.5 12,18 6,21.5 7,14.5 2,9.5 9,8.5"/>
+  </svg>
+)
+
 // Crew Type Icons - Hand-drawn style
 
 // Surfboard icon
