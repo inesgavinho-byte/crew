@@ -83,16 +83,20 @@ const checkAlertConditions = (alert, forecast) => {
 // Get forecast data for a spot
 const getSpotForecast = async (spotName) => {
   const coords = SPOT_COORDS[spotName] || DEFAULT_COORDS
-  const forecast = await getForecast(coords.lat, coords.lon)
-  
-  if (!forecast) return null
+  const result = await getForecast(coords.lat, coords.lon)
+
+  if (!result || !result.success || !result.processed) return null
+
+  // Use the first available hourly entry (current/next hour conditions)
+  const current = result.processed.hourly?.[0]
+  if (!current) return null
 
   return {
-    waveHeight: forecast.waveHeight,
-    windSpeed: forecast.windSpeed,
-    windDirection: degreesToDirection(forecast.windDirection),
-    swellDirection: degreesToDirection(forecast.swellDirection),
-    raw: forecast
+    waveHeight: current.waveHeight,
+    windSpeed: current.windSpeed,
+    windDirection: degreesToDirection(current.windDirection),
+    swellDirection: degreesToDirection(current.swellDirection),
+    raw: result
   }
 }
 

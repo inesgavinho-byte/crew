@@ -15,14 +15,23 @@ import CheckInModal from '../components/CheckInModal'
 import TideChart from '../components/TideChart'
 import 'leaflet/dist/leaflet.css'
 
-// Single discrete marker icon - all pins look the same
-const signalIcon = L.divIcon({
+// Condition colors for map markers
+const markerColors = {
+  glassy: '#2D8C8C',
+  clean: '#1A1A1A',
+  choppy: '#E88C3A',
+  blown: '#E85D3B',
+  flat: '#888888'
+}
+
+// Default marker icon (no signal today)
+const defaultIcon = L.divIcon({
   className: 'signal-marker',
   html: `
     <div style="
       width: 24px;
       height: 24px;
-      background: var(--deep-ocean, #2D4A55);
+      background: #2D4A55;
       border: 2px solid white;
       border-radius: 50%;
       box-shadow: 0 2px 8px rgba(0,0,0,0.25);
@@ -32,6 +41,27 @@ const signalIcon = L.divIcon({
   iconAnchor: [12, 24],
   popupAnchor: [0, -24]
 })
+
+// Condition-based marker icon with colored dot
+const createConditionIcon = (condition) => {
+  const color = markerColors[condition] || '#2D4A55'
+  return L.divIcon({
+    className: 'signal-marker',
+    html: `
+      <div style="
+        width: 28px;
+        height: 28px;
+        background: ${color};
+        border: 3px solid white;
+        border-radius: 50%;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+      "></div>
+    `,
+    iconSize: [28, 28],
+    iconAnchor: [14, 28],
+    popupAnchor: [0, -28]
+  })
+}
 
 // Component to fit map bounds
 function FitBounds({ spots }) {
