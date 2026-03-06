@@ -3,37 +3,11 @@ import { Link } from 'react-router-dom'
 import { useAuth } from '../lib/AuthContext'
 import { useNotifications } from '../lib/NotificationContext'
 import { supabase, getMyCrews, getFollowingSignalsFeed, getSpots, getUnreadCount } from '../lib/supabase'
-import { FinLogo, WaveIcon, CrewsIcon, PinIcon, WindIcon, ModalWave, MapIcon, MarketIcon, UserIcon, BellIcon, GlassyIcon, CleanIcon, ChoppyIcon, BlownIcon, FlatIcon, SurfboardIcon, BodyboardIcon, SupIcon, KiteIcon, SkateIcon, BikeIcon, RunIcon, TribeIcon, MessageIcon } from '../components/Icons'
+import { WaveIcon, PinIcon, WindIcon, BellIcon, MessageIcon } from '../components/Icons'
+import { ConditionIcon, SportIcon } from '../components/Icons'
+import Layout from '../components/Layout'
 import LogSession from '../components/LogSession'
 import CheckInModal from '../components/CheckInModal'
-
-// Condition icon component
-const ConditionIcon = ({ condition, size = 18 }) => {
-  switch(condition) {
-    case 'glassy': return <GlassyIcon size={size} />
-    case 'clean': return <CleanIcon size={size} />
-    case 'choppy': return <ChoppyIcon size={size} />
-    case 'blown': return <BlownIcon size={size} />
-    case 'flat': return <FlatIcon size={size} />
-    default: return <WaveIcon size={size} />
-  }
-}
-
-// Sport icon component
-const SportIcon = ({ sport, size = 18, color = 'var(--seafoam)' }) => {
-  const iconProps = { size, color }
-  switch(sport) {
-    case 'surf': return <SurfboardIcon {...iconProps} />
-    case 'bodyboard': return <BodyboardIcon {...iconProps} />
-    case 'sup': return <SupIcon {...iconProps} />
-    case 'kitesurf': return <KiteIcon {...iconProps} />
-    case 'windsurf': return <KiteIcon {...iconProps} />
-    case 'skate': return <SkateIcon {...iconProps} />
-    case 'bike': return <BikeIcon {...iconProps} />
-    case 'run': return <RunIcon {...iconProps} />
-    default: return <TribeIcon {...iconProps} />
-  }
-}
 
 // Format time ago
 const formatTimeAgo = (date) => {
@@ -182,120 +156,53 @@ export default function Feed() {
   })
   const uniqueUsers = [...new Set(todaySignals.map(s => s.user_id))].length
 
-  return (
-    <div className="app">
-      {/* Left Sidebar */}
-      <aside className="sidebar-left">
-        <div className="logo">
-          <FinLogo size={36} color="#F5F0E6" waveColor="#5B8A72" />
-          <div>
-            <div className="logo-title">CREW</div>
-            <div className="logo-tagline">no time / no territory</div>
-          </div>
-        </div>
+  const signalButton = (
+    <>
+      <button className="btn-signal" onClick={() => setShowCheckIn(true)} disabled={crews.length === 0}>
+        <PinIcon size={20} color="#F4F1E8" />
+        Signal
+      </button>
+      {crews.length === 0 && (
+        <p style={{ padding: '0 16px', fontSize: '12px', color: '#888', marginTop: '8px' }}>
+          Join a crew first to signal
+        </p>
+      )}
+    </>
+  )
 
-        <nav className="nav-menu">
-          <Link to="/" className="nav-link active">
-            <WaveIcon size={20} />
-            Feed
+  const rightSidebarContent = (
+    <>
+      <div className="sidebar-section">
+        <h3 className="sidebar-title">Your Crews</h3>
+        {crews.map(crew => (
+          <Link key={crew.crew_id} to={`/crews/${crew.crew_id}`} className="sidebar-crew-item">
+            <SportIcon sport={crew.crews?.sport} size={18} />
+            <span className="sidebar-crew-name">{crew.crews?.name}</span>
           </Link>
-          <Link to="/crews" className="nav-link">
-            <CrewsIcon size={20} />
-            Crews
-          </Link>
-          <Link to="/map" className="nav-link">
-            <MapIcon size={20} />
-            Map
-          </Link>
-          <Link to="/messages" className="nav-link nav-link-badge">
-            <MessageIcon size={20} />
-            Messages
-            {unreadMsgCount > 0 && <span className="nav-badge">{unreadMsgCount}</span>}
-          </Link>
-          <Link to="/market" className="nav-link">
-            <MarketIcon size={20} />
-            Market
-          </Link>
-          <Link to="/profile" className="nav-link">
-            <span className="nav-avatar">{profile?.username?.charAt(0).toUpperCase() || 'U'}</span>
-            Profile
-          </Link>
-        </nav>
-
-        <div className="nav-spacer" />
-
-        <button className="btn-signal" onClick={() => setShowCheckIn(true)} disabled={crews.length === 0}>
-          <PinIcon size={20} color="#F4F1E8" />
-          Signal
-        </button>
-
+        ))}
         {crews.length === 0 && (
-          <p style={{ padding: '0 16px', fontSize: '12px', color: '#888', marginTop: '8px' }}>
-            Join a crew first to signal
-          </p>
+          <p className="sidebar-empty">No crews yet</p>
         )}
+      </div>
 
-        <div className="nav-user">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
-            <div className="avatar">{profile?.username?.charAt(0).toUpperCase()}</div>
-            <span style={{ color: '#fff', fontSize: '14px', flex: 1 }}>{profile?.username}</span>
-            <button 
-              className="notification-bell"
-              onClick={() => {
-                setShowNotifications(!showNotifications)
-                if (!showNotifications && unreadCount > 0) {
-                  markAllRead()
-                }
-              }}
-            >
-              <BellIcon size={20} color="#F4F1E8" />
-              {unreadCount > 0 && (
-                <span className="notification-badge">
-                  {unreadCount > 9 ? '9+' : unreadCount}
-                </span>
-              )}
-            </button>
-            
-            {/* Notification Panel */}
-            {showNotifications && (
-              <div className="notification-panel">
-                <div className="notification-panel-header">
-                  <h4>Notifications</h4>
-                  {notifications.length > 0 && (
-                    <button onClick={clearAll} className="notification-clear">
-                      Clear all
-                    </button>
-                  )}
-                </div>
-                <div className="notification-panel-list">
-                  {notifications.length === 0 ? (
-                    <p className="notification-empty">No notifications yet</p>
-                  ) : (
-                    notifications.slice(0, 10).map(n => (
-                      <div key={n.id} className={`notification-item notification-item-${n.type || 'info'}`}>
-                        <div className="notification-item-content">
-                          <strong>{n.title}</strong>
-                          <span>{n.message}</span>
-                          <small>{formatTimeAgo(n.timestamp)}</small>
-                        </div>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </div>
-            )}
+      <div className="sidebar-section">
+        <h3 className="sidebar-title">Popular Spots</h3>
+        {spots.slice(0, 6).map(spot => (
+          <div key={spot.id} className="spot-item">
+            <PinIcon size={14} />
+            <span className="spot-item-name">{spot.name}</span>
           </div>
-          <button 
-            onClick={signOut}
-            style={{ background: 'none', border: 'none', color: '#888', fontSize: '13px', cursor: 'pointer' }}
-          >
-            Sign out
-          </button>
-        </div>
-      </aside>
+        ))}
+      </div>
+    </>
+  )
 
-      {/* Main Content */}
-      <main className="main-content">
+  return (
+    <Layout
+      sidebarExtra={signalButton}
+      rightSidebar={rightSidebarContent}
+      unreadMsgCount={unreadMsgCount}
+    >
         <div className="page-header">
           <h1 className="page-title">Today's Signals</h1>
           <p className="page-subtitle">What's happening out there</p>
@@ -384,33 +291,34 @@ export default function Feed() {
             </div>
           ))
         )}
-      </main>
-
-      {/* Right Sidebar */}
-      <aside className="sidebar-right">
-        <div className="sidebar-section">
-          <h3 className="sidebar-title">Your Crews</h3>
-          {crews.map(crew => (
-            <Link key={crew.crew_id} to={`/crews/${crew.crew_id}`} className="sidebar-crew-item">
-              <SportIcon sport={crew.crews?.sport} size={18} />
-              <span className="sidebar-crew-name">{crew.crews?.name}</span>
-            </Link>
-          ))}
-          {crews.length === 0 && (
-            <p className="sidebar-empty">No crews yet</p>
-          )}
+      {/* Notification Bell - floating */}
+      {showNotifications && (
+        <div className="notification-panel">
+          <div className="notification-panel-header">
+            <h4>Notifications</h4>
+            {notifications.length > 0 && (
+              <button onClick={clearAll} className="notification-clear">
+                Clear all
+              </button>
+            )}
+          </div>
+          <div className="notification-panel-list">
+            {notifications.length === 0 ? (
+              <p className="notification-empty">No notifications yet</p>
+            ) : (
+              notifications.slice(0, 10).map(n => (
+                <div key={n.id} className={`notification-item notification-item-${n.type || 'info'}`}>
+                  <div className="notification-item-content">
+                    <strong>{n.title}</strong>
+                    <span>{n.message}</span>
+                    <small>{formatTimeAgo(n.timestamp)}</small>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
         </div>
-
-        <div className="sidebar-section">
-          <h3 className="sidebar-title">Popular Spots</h3>
-          {spots.slice(0, 6).map(spot => (
-            <div key={spot.id} className="spot-item">
-              <PinIcon size={14} />
-              <span className="spot-item-name">{spot.name}</span>
-            </div>
-          ))}
-        </div>
-      </aside>
+      )}
 
       {/* Check-in Modal */}
       {showCheckIn && (
@@ -453,6 +361,6 @@ export default function Feed() {
           }}
         />
       )}
-    </div>
+    </Layout>
   )
 }

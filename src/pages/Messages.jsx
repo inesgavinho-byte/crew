@@ -2,7 +2,8 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { Link, useParams, useNavigate } from 'react-router-dom'
 import { useAuth } from '../lib/AuthContext'
 import { supabase, getConversations, getMessages, sendDirectMessage, markMessagesAsRead, getUnreadCount } from '../lib/supabase'
-import { FinLogo, WaveIcon, CrewsIcon, MapIcon, MarketIcon, MessageIcon } from '../components/Icons'
+import { MessageIcon } from '../components/Icons'
+import Layout from '../components/Layout'
 
 // Notification sound (base64 encoded short beep)
 const playNotificationSound = () => {
@@ -206,59 +207,7 @@ export default function Messages() {
   const totalUnread = conversations.reduce((sum, c) => sum + (c.unread_count || 0), 0)
 
   return (
-    <div className="app">
-      {/* Left Sidebar */}
-      <aside className="sidebar-left">
-        <div className="logo">
-          <FinLogo size={36} color="#F5F0E6" waveColor="#5B8A72" />
-          <div>
-            <div className="logo-title">CREW</div>
-            <div className="logo-tagline">your micro tribe</div>
-          </div>
-        </div>
-
-        <nav className="nav-menu">
-          <Link to="/" className="nav-link">
-            <WaveIcon size={20} />
-            Feed
-          </Link>
-          <Link to="/crews" className="nav-link">
-            <CrewsIcon size={20} />
-            Crews
-          </Link>
-          <Link to="/map" className="nav-link">
-            <MapIcon size={20} />
-            Map
-          </Link>
-          <Link to="/messages" className={`nav-link active ${hasNewMessage ? 'has-new' : ''}`}>
-            <MessageIcon size={20} />
-            Messages
-            {totalUnread > 0 && <span className="nav-badge">{totalUnread}</span>}
-          </Link>
-          <Link to="/market" className="nav-link">
-            <MarketIcon size={20} />
-            Market
-          </Link>
-          <Link to="/profile" className="nav-link">
-            <span className="nav-avatar">{profile?.username?.charAt(0).toUpperCase() || 'U'}</span>
-            Profile
-          </Link>
-        </nav>
-
-        <div className="nav-spacer" />
-
-        <div className="nav-user">
-          <button 
-            onClick={signOut}
-            style={{ background: 'none', border: 'none', color: '#888', fontSize: '13px', cursor: 'pointer' }}
-          >
-            Sign out
-          </button>
-        </div>
-      </aside>
-
-      {/* Main Content */}
-      <main className="main-content messages-page">
+    <Layout mainClassName="main-content messages-page" unreadMsgCount={totalUnread}>
         {/* Conversations List */}
         <div className={`conversations-list ${selectedConv ? 'hidden-mobile' : ''}`}>
           <div className="conversations-header">
@@ -368,7 +317,6 @@ export default function Messages() {
             </div>
           )}
         </div>
-      </main>
-    </div>
+    </Layout>
   )
 }

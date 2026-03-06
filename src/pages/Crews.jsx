@@ -3,23 +3,9 @@ import { Link } from 'react-router-dom'
 import { useAuth } from '../lib/AuthContext'
 import { getMyCrews, createCrew, getCrewMembers, getPendingMembers, getPendingInvites, acceptInvite, declineInvite, getPublicCrews, joinCrewByCode } from '../lib/supabase'
 import { useNotifications } from '../lib/NotificationContext'
-import { FinLogo, WaveIcon, CrewsIcon, ArrowIcon, PlusIcon, MapIcon, MarketIcon, UserIcon, SurfboardIcon, BodyboardIcon, SupIcon, KiteIcon, SkateIcon, BikeIcon, RunIcon, TribeIcon, MessageIcon } from '../components/Icons'
-
-// Sport icon component
-const SportIcon = ({ sport, size = 32 }) => {
-  const iconProps = { size, color: 'var(--deep-ocean)' }
-  switch(sport) {
-    case 'surf': return <SurfboardIcon {...iconProps} />
-    case 'bodyboard': return <BodyboardIcon {...iconProps} />
-    case 'sup': return <SupIcon {...iconProps} />
-    case 'kitesurf': return <KiteIcon {...iconProps} />
-    case 'windsurf': return <KiteIcon {...iconProps} />
-    case 'skate': return <SkateIcon {...iconProps} />
-    case 'bike': return <BikeIcon {...iconProps} />
-    case 'run': return <RunIcon {...iconProps} />
-    default: return <TribeIcon {...iconProps} />
-  }
-}
+import { CrewsIcon, ArrowIcon, PlusIcon } from '../components/Icons'
+import { SportIcon } from '../components/Icons'
+import Layout from '../components/Layout'
 
 export default function Crews() {
   const { user, profile, signOut } = useAuth()
@@ -92,63 +78,28 @@ export default function Crews() {
     setJoiningCrew(null)
   }
 
+  const rightSidebarContent = (
+    <>
+      <div className="sidebar-section">
+        <h3 className="sidebar-title">How Crews Work</h3>
+        <div className="info-card">
+          <p>Crews are small, private groups. New members need <strong>&gt;50% approval</strong> from existing members.</p>
+          <p className="info-card-note">Keep it tight, keep it real.</p>
+        </div>
+      </div>
+
+      <div className="sidebar-section">
+        <h3 className="sidebar-title">Your Crews</h3>
+        <div className="stat-card">
+          <div className="stat-number">{crews.length}</div>
+          <div className="stat-label">active crews</div>
+        </div>
+      </div>
+    </>
+  )
+
   return (
-    <div className="app">
-      {/* Left Sidebar */}
-      <aside className="sidebar-left">
-        <div className="logo">
-          <FinLogo size={36} color="#F5F0E6" waveColor="#5B8A72" />
-          <div>
-            <div className="logo-title">CREW</div>
-            <div className="logo-tagline">your micro tribe</div>
-          </div>
-        </div>
-
-        <nav className="nav-menu">
-          <Link to="/" className="nav-link">
-            <WaveIcon size={20} />
-            Feed
-          </Link>
-          <Link to="/crews" className="nav-link active">
-            <CrewsIcon size={20} />
-            Crews
-          </Link>
-          <Link to="/map" className="nav-link">
-            <MapIcon size={20} />
-            Map
-          </Link>
-          <Link to="/messages" className="nav-link">
-            <MessageIcon size={20} />
-            Messages
-          </Link>
-          <Link to="/market" className="nav-link">
-            <MarketIcon size={20} />
-            Market
-          </Link>
-          <Link to="/profile" className="nav-link">
-            <span className="nav-avatar">{profile?.username?.charAt(0).toUpperCase() || 'U'}</span>
-            Profile
-          </Link>
-        </nav>
-
-        <div className="nav-spacer" />
-
-        <div className="nav-user">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
-            <div className="avatar">{profile?.username?.charAt(0).toUpperCase()}</div>
-            <span style={{ color: '#fff', fontSize: '14px' }}>{profile?.username}</span>
-          </div>
-          <button 
-            onClick={signOut}
-            style={{ background: 'none', border: 'none', color: '#888', fontSize: '13px', cursor: 'pointer' }}
-          >
-            Sign out
-          </button>
-        </div>
-      </aside>
-
-      {/* Main Content */}
-      <main className="main-content">
+    <Layout rightSidebar={rightSidebarContent}>
         {/* Pending Invites */}
         {pendingInvites.length > 0 && (
           <div className="invites-section">
@@ -263,27 +214,6 @@ export default function Crews() {
             </div>
           </div>
         )}
-      </main>
-
-      {/* Right Sidebar */}
-      <aside className="sidebar-right">
-        <div className="sidebar-section">
-          <h3 className="sidebar-title">How Crews Work</h3>
-          <div className="info-card">
-            <p>Crews are small, private groups. New members need <strong>&gt;50% approval</strong> from existing members.</p>
-            <p className="info-card-note">Keep it tight, keep it real.</p>
-          </div>
-        </div>
-
-        <div className="sidebar-section">
-          <h3 className="sidebar-title">Your Crews</h3>
-          <div className="stat-card">
-            <div className="stat-number">{crews.length}</div>
-            <div className="stat-label">active crews</div>
-          </div>
-        </div>
-      </aside>
-
       {/* Create Crew Modal */}
       {showCreate && (
         <CreateCrewModal 
@@ -294,7 +224,7 @@ export default function Crews() {
           }}
         />
       )}
-    </div>
+    </Layout>
   )
 }
 
@@ -329,7 +259,6 @@ function CreateCrewModal({ onClose, onSuccess }) {
 
     try {
       const result = await createCrew(name.trim(), '🌊', description, sport)
-      console.log('Create crew result:', result)
       if (result.error) {
         setError(result.error.message || 'Failed to create crew')
         setLoading(false)

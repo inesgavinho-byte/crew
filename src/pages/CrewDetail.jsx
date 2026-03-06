@@ -2,25 +2,11 @@ import { useState, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '../lib/AuthContext'
 import { supabase } from '../lib/supabase'
-import { FinLogo, WaveIcon, CrewsIcon, MapIcon, MarketIcon, UserIcon, ChatIcon, SurfboardIcon, BodyboardIcon, SupIcon, KiteIcon, SkateIcon, BikeIcon, RunIcon, TribeIcon, MessageIcon } from '../components/Icons'
+import { CrewsIcon, ChatIcon } from '../components/Icons'
+import { SportIcon } from '../components/Icons'
+import Layout from '../components/Layout'
 import ChatSidebar from '../components/ChatSidebar'
 import InvitePanel from '../components/InvitePanel'
-
-// Sport icon component
-const SportIcon = ({ sport, size = 32, color = 'var(--deep-ocean)' }) => {
-  const iconProps = { size, color }
-  switch(sport) {
-    case 'surf': return <SurfboardIcon {...iconProps} />
-    case 'bodyboard': return <BodyboardIcon {...iconProps} />
-    case 'sup': return <SupIcon {...iconProps} />
-    case 'kitesurf': return <KiteIcon {...iconProps} />
-    case 'windsurf': return <KiteIcon {...iconProps} />
-    case 'skate': return <SkateIcon {...iconProps} />
-    case 'bike': return <BikeIcon {...iconProps} />
-    case 'run': return <RunIcon {...iconProps} />
-    default: return <TribeIcon {...iconProps} />
-  }
-}
 
 export default function CrewDetail() {
   const { crewId } = useParams()
@@ -197,85 +183,46 @@ export default function CrewDetail() {
 
   if (error || !crew) {
     return (
-      <div className="app">
-        <aside className="sidebar-left">
-          <div className="logo">
-            <FinLogo size={36} color="#F5F0E6" waveColor="#5B8A72" />
-            <div>
-              <div className="logo-title">CREW</div>
-              <div className="logo-tagline">no time / no territory</div>
-            </div>
-          </div>
-        </aside>
-        <main className="main-content">
-          <div className="empty-state">
-            <p>Crew not found</p>
-            <Link to="/crews" className="btn btn-primary" style={{ marginTop: '16px' }}>
-              Back to Crews
-            </Link>
-          </div>
-        </main>
-      </div>
+      <Layout>
+        <div className="empty-state">
+          <p>Crew not found</p>
+          <Link to="/crews" className="btn btn-primary" style={{ marginTop: '16px' }}>
+            Back to Crews
+          </Link>
+        </div>
+      </Layout>
     )
   }
 
+  const rightSidebarContent = (
+    <>
+      <div className="sidebar-section">
+        <h3 className="sidebar-title">Quick Stats</h3>
+        <div className="crew-quick-stats">
+          <div className="quick-stat">
+            <CrewsIcon size={24} color="var(--seafoam)" />
+            <span className="quick-stat-value">{members.length}</span>
+            <span className="quick-stat-label">members</span>
+          </div>
+          <div className="quick-stat">
+            <SportIcon sport={crew.sport} size={24} color="var(--seafoam)" />
+            <span className="quick-stat-value">{crew.sport}</span>
+            <span className="quick-stat-label">activity</span>
+          </div>
+        </div>
+      </div>
+
+      {isAdmin && (
+        <div className="sidebar-section">
+          <h3 className="sidebar-title">Admin Actions</h3>
+          <InvitePanel crewId={crewId} crewName={crew?.name} />
+        </div>
+      )}
+    </>
+  )
+
   return (
-    <div className="app">
-      {/* Left Sidebar */}
-      <aside className="sidebar-left">
-        <div className="logo">
-          <FinLogo size={36} color="#F5F0E6" waveColor="#5B8A72" />
-          <div>
-            <div className="logo-title">CREW</div>
-            <div className="logo-tagline">no time / no territory</div>
-          </div>
-        </div>
-
-        <nav className="nav-menu">
-          <Link to="/" className="nav-link">
-            <WaveIcon size={20} />
-            Feed
-          </Link>
-          <Link to="/crews" className="nav-link active">
-            <CrewsIcon size={20} />
-            Crews
-          </Link>
-          <Link to="/map" className="nav-link">
-            <MapIcon size={20} />
-            Map
-          </Link>
-          <Link to="/messages" className="nav-link">
-            <MessageIcon size={20} />
-            Messages
-          </Link>
-          <Link to="/market" className="nav-link">
-            <MarketIcon size={20} />
-            Market
-          </Link>
-          <Link to="/profile" className="nav-link">
-            <span className="nav-avatar">{profile?.username?.charAt(0).toUpperCase() || 'U'}</span>
-            Profile
-          </Link>
-        </nav>
-
-        <div className="nav-spacer" />
-
-        <div className="nav-user">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
-            <div className="avatar">{profile?.username?.charAt(0).toUpperCase()}</div>
-            <span style={{ color: '#fff', fontSize: '14px' }}>{profile?.username}</span>
-          </div>
-          <button 
-            onClick={signOut}
-            style={{ background: 'none', border: 'none', color: '#888', fontSize: '13px', cursor: 'pointer' }}
-          >
-            Sign out
-          </button>
-        </div>
-      </aside>
-
-      {/* Main Content */}
-      <main className="main-content">
+    <Layout rightSidebar={rightSidebarContent}>
         <Link to="/crews" className="back-link">← Back to Crews</Link>
         
         {/* Crew Header */}
@@ -390,34 +337,6 @@ export default function CrewDetail() {
             </button>
           </div>
         )}
-      </main>
-
-      {/* Right Sidebar */}
-      <aside className="sidebar-right">
-        <div className="sidebar-section">
-          <h3 className="sidebar-title">Quick Stats</h3>
-          <div className="crew-quick-stats">
-            <div className="quick-stat">
-              <CrewsIcon size={24} color="var(--seafoam)" />
-              <span className="quick-stat-value">{members.length}</span>
-              <span className="quick-stat-label">members</span>
-            </div>
-            <div className="quick-stat">
-              <SportIcon sport={crew.sport} size={24} color="var(--seafoam)" />
-              <span className="quick-stat-value">{crew.sport}</span>
-              <span className="quick-stat-label">activity</span>
-            </div>
-          </div>
-        </div>
-
-        {isAdmin && (
-          <div className="sidebar-section">
-            <h3 className="sidebar-title">Admin Actions</h3>
-            <InvitePanel crewId={crewId} crewName={crew?.name} />
-          </div>
-        )}
-      </aside>
-
       {/* Chat Sidebar */}
       {showChat && (
         <ChatSidebar 
@@ -440,7 +359,7 @@ export default function CrewDetail() {
           </div>
         </div>
       )}
-    </div>
+    </Layout>
   )
 }
 

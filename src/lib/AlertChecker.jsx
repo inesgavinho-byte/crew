@@ -25,9 +25,7 @@ export function AlertChecker() {
         // Check alerts
         const result = await checkUserAlerts(user.id, addNotification)
         
-        if (result.triggered > 0) {
-          console.log(`🔔 ${result.triggered} alert(s) triggered!`)
-        }
+        // Triggered alerts are handled via addNotification callback
       }, 2000) // 2 second delay
 
       return () => clearTimeout(timer)

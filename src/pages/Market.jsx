@@ -8,7 +8,8 @@ import {
   expressInterest,
   uploadImage 
 } from '../lib/supabase'
-import { FinLogo, WaveIcon, CrewsIcon, MapIcon, UserIcon, SurfboardIcon, PinIcon, MessageIcon } from '../components/Icons'
+import { SurfboardIcon, PinIcon } from '../components/Icons'
+import Layout from '../components/Layout'
 
 // Board type icons
 const BoardTypeIcon = ({ type, size = 24 }) => {
@@ -122,63 +123,45 @@ export default function Market() {
     })
   }
 
+  const rightSidebarContent = (
+    <>
+      <div className="sidebar-section">
+        <h3 className="sidebar-title">Quick Stats</h3>
+        <div className="market-stats">
+          <div className="market-stat">
+            <span className="market-stat-value">{listings.length}</span>
+            <span className="market-stat-label">Active Listings</span>
+          </div>
+        </div>
+      </div>
+
+      <div className="sidebar-section">
+        <h3 className="sidebar-title">Popular Types</h3>
+        <div className="market-type-list">
+          {BOARD_TYPES.slice(0, 5).map(type => {
+            const count = listings.filter(l => l.board_type === type.value).length
+            return (
+              <button
+                key={type.value}
+                className="market-type-btn"
+                onClick={() => {
+                  setFilters({ ...filters, board_type: type.value })
+                  loadListings({ board_type: type.value })
+                }}
+              >
+                <SurfboardIcon size={16} />
+                <span>{type.label}</span>
+                <span className="market-type-count">{count}</span>
+              </button>
+            )
+          })}
+        </div>
+      </div>
+    </>
+  )
+
   return (
-    <div className="app">
-      {/* Sidebar */}
-      <aside className="sidebar-left">
-        <div className="logo">
-          <FinLogo size={32} color="#F4F1E8" />
-          <div>
-            <div className="logo-title">CREW</div>
-            <div className="logo-tagline">your micro tribe</div>
-          </div>
-        </div>
-
-        <nav className="nav-menu">
-          <Link to="/feed" className="nav-link">
-            <WaveIcon size={20} />
-            Feed
-          </Link>
-          <Link to="/crews" className="nav-link">
-            <CrewsIcon size={20} />
-            Crews
-          </Link>
-          <Link to="/map" className="nav-link">
-            <MapIcon size={20} />
-            Map
-          </Link>
-          <Link to="/messages" className="nav-link">
-            <MessageIcon size={20} />
-            Messages
-          </Link>
-          <Link to="/market" className="nav-link active">
-            <MarketIcon size={20} />
-            Market
-          </Link>
-          <Link to="/profile" className="nav-link">
-            <span className="nav-avatar">{profile?.username?.charAt(0).toUpperCase() || 'U'}</span>
-            Profile
-          </Link>
-        </nav>
-
-        <div className="nav-spacer" />
-
-        <div className="nav-user">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
-            <div className="avatar">{profile?.username?.charAt(0).toUpperCase()}</div>
-            <span style={{ color: '#fff', fontSize: '14px' }}>{profile?.username}</span>
-          </div>
-          <button 
-            onClick={signOut}
-            style={{ background: 'none', border: 'none', color: '#888', fontSize: '13px', cursor: 'pointer' }}
-          >
-            Sign out
-          </button>
-        </div>
-      </aside>
-
-      {/* Main Content */}
-      <main className="main-content">
+    <Layout rightSidebar={rightSidebarContent}>
         <div className="page-header">
           <div>
             <h1 className="page-title">Board Market</h1>
@@ -258,44 +241,6 @@ export default function Market() {
             ))}
           </div>
         )}
-      </main>
-
-      {/* Right Sidebar */}
-      <aside className="sidebar-right">
-        <div className="sidebar-section">
-          <h3 className="sidebar-title">Quick Stats</h3>
-          <div className="market-stats">
-            <div className="market-stat">
-              <span className="market-stat-value">{listings.length}</span>
-              <span className="market-stat-label">Active Listings</span>
-            </div>
-          </div>
-        </div>
-
-        <div className="sidebar-section">
-          <h3 className="sidebar-title">Popular Types</h3>
-          <div className="market-type-list">
-            {BOARD_TYPES.slice(0, 5).map(type => {
-              const count = listings.filter(l => l.board_type === type.value).length
-              return (
-                <button 
-                  key={type.value}
-                  className="market-type-btn"
-                  onClick={() => {
-                    setFilters({ ...filters, board_type: type.value })
-                    loadListings({ board_type: type.value })
-                  }}
-                >
-                  <SurfboardIcon size={16} />
-                  <span>{type.label}</span>
-                  <span className="market-type-count">{count}</span>
-                </button>
-              )
-            })}
-          </div>
-        </div>
-      </aside>
-
       {/* Create Listing Modal */}
       {showCreateModal && (
         <CreateListingModal 
@@ -323,7 +268,7 @@ export default function Market() {
           }}
         />
       )}
-    </div>
+    </Layout>
   )
 }
 

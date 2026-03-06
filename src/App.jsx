@@ -1,30 +1,38 @@
+import { lazy, Suspense } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from './lib/AuthContext'
 import { NotificationProvider } from './lib/NotificationContext'
 import { AlertChecker } from './lib/AlertChecker'
 import { OfflineBanner, InstallPrompt } from './components/PWA'
-import Auth from './pages/Auth'
-import Feed from './pages/Feed'
-import Crews from './pages/Crews'
-import CrewDetail from './pages/CrewDetail'
-import Map from './pages/Map'
-import Market from './pages/Market'
-import Profile from './pages/Profile'
-import Messages from './pages/Messages'
-import Join from './pages/Join'
 import './index.css'
+
+const Auth = lazy(() => import('./pages/Auth'))
+const Feed = lazy(() => import('./pages/Feed'))
+const Crews = lazy(() => import('./pages/Crews'))
+const CrewDetail = lazy(() => import('./pages/CrewDetail'))
+const Map = lazy(() => import('./pages/Map'))
+const Market = lazy(() => import('./pages/Market'))
+const Profile = lazy(() => import('./pages/Profile'))
+const Messages = lazy(() => import('./pages/Messages'))
+const Join = lazy(() => import('./pages/Join'))
+
+const PageLoader = () => (
+  <div className="loading" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh' }}>
+    Loading...
+  </div>
+)
 
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth()
-  
+
   if (loading) {
-    return <div className="loading">Loading...</div>
+    return <PageLoader />
   }
-  
+
   if (!user) {
     return <Navigate to="/auth" />
   }
-  
+
   return children
 }
 
@@ -36,6 +44,7 @@ function App() {
           <AlertChecker />
           <OfflineBanner />
           <InstallPrompt />
+          <Suspense fallback={<PageLoader />}>
           <Routes>
             <Route path="/auth" element={<Auth />} />
             <Route path="/join/:code?" element={<Join />} />
@@ -81,6 +90,7 @@ function App() {
             } />
             <Route path="*" element={<Navigate to="/" />} />
           </Routes>
+          </Suspense>
         </NotificationProvider>
       </AuthProvider>
     </BrowserRouter>
