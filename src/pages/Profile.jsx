@@ -4,7 +4,9 @@ import { useAuth } from '../lib/AuthContext'
 import { supabase, getMyCrews, updateProfile, uploadImage, getMyListings, markListingAsSold, deleteListing, getUserSessions, deleteSession, getUserAlerts, deleteAlert, toggleAlert, requestFollow, unfollow, acceptFollowRequest, declineFollowRequest, getPendingFollowRequests, getFollowers, getFollowing, getFollowStatus, getFollowCounts, usersShareCrew, getOrCreateConversation } from '../lib/supabase'
 import { formatAlertConditions } from '../lib/alertChecker'
 import { useNotifications } from '../lib/NotificationContext'
-import { FinLogo, WaveIcon, CrewsIcon, MapIcon, PlusIcon, CameraIcon, EditIcon, UserIcon, MarketIcon, SurfboardIcon, BodyboardIcon, SupIcon, KiteIcon, SkateIcon, BikeIcon, RunIcon, TribeIcon, PinIcon, BellIcon, MessageIcon } from '../components/Icons'
+import { PlusIcon, CameraIcon, EditIcon, UserIcon, MarketIcon, PinIcon, BellIcon, MessageIcon } from '../components/Icons'
+import { SportIcon } from '../components/Icons'
+import Layout from '../components/Layout'
 import LogSession from '../components/LogSession'
 import CreateAlertModal from '../components/CreateAlertModal'
 
@@ -17,21 +19,6 @@ const StarRating = ({ rating, size = 14 }) => (
   </div>
 )
 
-// Sport icon component
-const SportIcon = ({ sport, size = 20, color = 'var(--seafoam)' }) => {
-  const iconProps = { size, color }
-  switch(sport) {
-    case 'surf': return <SurfboardIcon {...iconProps} />
-    case 'bodyboard': return <BodyboardIcon {...iconProps} />
-    case 'sup': return <SupIcon {...iconProps} />
-    case 'kitesurf': return <KiteIcon {...iconProps} />
-    case 'windsurf': return <KiteIcon {...iconProps} />
-    case 'skate': return <SkateIcon {...iconProps} />
-    case 'bike': return <BikeIcon {...iconProps} />
-    case 'run': return <RunIcon {...iconProps} />
-    default: return <TribeIcon {...iconProps} />
-  }
-}
 
 export default function Profile() {
   const { userId } = useParams()
@@ -195,7 +182,7 @@ export default function Profile() {
           setPendingRequests(requests || [])
         }
       } catch (e) {
-        console.log('Follow data not available')
+        // Follow data not available
       }
 
     } catch (err) {
@@ -285,95 +272,60 @@ export default function Profile() {
 
   if (loading) {
     return (
-      <div className="app">
-        <aside className="sidebar-left">
-          <div className="logo">
-            <FinLogo size={36} color="#F5F0E6" waveColor="#5B8A72" />
-            <div>
-              <div className="logo-title">CREW</div>
-              <div className="logo-tagline">your micro tribe</div>
-            </div>
-          </div>
-        </aside>
-        <main className="main-content">
-          <div style={{ padding: '40px', textAlign: 'center', color: '#888' }}>Loading...</div>
-        </main>
-      </div>
+      <Layout>
+        <div style={{ padding: '40px', textAlign: 'center', color: '#888' }}>Loading...</div>
+      </Layout>
     )
   }
 
   if (!profile) {
     return (
-      <div className="app">
-        <aside className="sidebar-left">
-          <div className="logo">
-            <FinLogo size={36} color="#F5F0E6" waveColor="#5B8A72" />
-            <div>
-              <div className="logo-title">CREW</div>
-              <div className="logo-tagline">your micro tribe</div>
-            </div>
-          </div>
-        </aside>
-        <main className="main-content">
-          <div style={{ padding: '40px', textAlign: 'center', color: '#888' }}>User not found</div>
-        </main>
-      </div>
+      <Layout>
+        <div style={{ padding: '40px', textAlign: 'center', color: '#888' }}>User not found</div>
+      </Layout>
     )
   }
 
-  return (
-    <div className="app">
-      {/* Left Sidebar */}
-      <aside className="sidebar-left">
-        <div className="logo">
-          <FinLogo size={36} color="#F5F0E6" waveColor="#5B8A72" />
-          <div>
-            <div className="logo-title">CREW</div>
-            <div className="logo-tagline">your micro tribe</div>
+  const rightSidebarContent = (
+    <>
+      <div className="sidebar-section">
+        <h3 className="sidebar-title">{isOwnProfile ? 'Your' : `${profile?.username}'s`} Crews</h3>
+        {crews.length === 0 ? (
+          <p className="sidebar-empty">No crews yet</p>
+        ) : (
+          <div className="sidebar-crews">
+            {crews.map(crew => (
+              <Link key={crew.crew_id} to={`/crews/${crew.crew_id}`} className="sidebar-crew-item">
+                <SportIcon sport={crew.crews?.sport || 'surf'} size={18} />
+                <span className="sidebar-crew-name">{crew.crews?.name}</span>
+              </Link>
+            ))}
           </div>
+        )}
+      </div>
+
+      <div className="sidebar-section">
+        <h3 className="sidebar-title">Member Since</h3>
+        <p className="sidebar-meta">
+          {profile?.created_at ? new Date(profile.created_at).toLocaleDateString('pt-PT', {
+            month: 'long',
+            year: 'numeric'
+          }) : '—'}
+        </p>
+      </div>
+
+      {!isOwnProfile && (
+        <div className="sidebar-section">
+          <Link to="/profile" className="btn btn-secondary btn-small" style={{ width: '100%', justifyContent: 'center' }}>
+            ← Back to my profile
+          </Link>
         </div>
+      )}
+    </>
+  )
 
-        <nav className="nav-menu">
-          <Link to="/" className="nav-link">
-            <WaveIcon size={20} />
-            Feed
-          </Link>
-          <Link to="/crews" className="nav-link">
-            <CrewsIcon size={20} />
-            Crews
-          </Link>
-          <Link to="/map" className="nav-link">
-            <MapIcon size={20} />
-            Map
-          </Link>
-          <Link to="/messages" className="nav-link">
-            <MessageIcon size={20} />
-            Messages
-          </Link>
-          <Link to="/market" className="nav-link">
-            <MarketIcon size={20} />
-            Market
-          </Link>
-          <Link to="/profile" className={`nav-link ${isOwnProfile ? 'active' : ''}`}>
-            <span className="nav-avatar">{myProfile?.username?.charAt(0).toUpperCase() || 'U'}</span>
-            Profile
-          </Link>
-        </nav>
-
-        <div className="nav-spacer" />
-
-        <div className="nav-user">
-          <button 
-            onClick={signOut}
-            style={{ background: 'none', border: 'none', color: '#888', fontSize: '13px', cursor: 'pointer' }}
-          >
-            Sign out
-          </button>
-        </div>
-      </aside>
-
-      {/* Main Content */}
-      <main className="main-content">
+  return (
+    <Layout rightSidebar={rightSidebarContent}>
         {/* Profile Header */}
         <div className="profile-header">
           <div className="profile-avatar-large">
@@ -856,45 +808,6 @@ export default function Profile() {
             </button>
           </div>
         )}
-      </main>
-
-      {/* Right Sidebar */}
-      <aside className="sidebar-right">
-        <div className="sidebar-section">
-          <h3 className="sidebar-title">{isOwnProfile ? 'Your' : `${profile?.username}'s`} Crews</h3>
-          {crews.length === 0 ? (
-            <p className="sidebar-empty">No crews yet</p>
-          ) : (
-            <div className="sidebar-crews">
-              {crews.map(crew => (
-                <Link key={crew.crew_id} to={`/crews/${crew.crew_id}`} className="sidebar-crew-item">
-                  <SportIcon sport={crew.crews?.sport || 'surf'} size={18} />
-                  <span className="sidebar-crew-name">{crew.crews?.name}</span>
-                </Link>
-              ))}
-            </div>
-          )}
-        </div>
-
-        <div className="sidebar-section">
-          <h3 className="sidebar-title">Member Since</h3>
-          <p className="sidebar-meta">
-            {profile?.created_at ? new Date(profile.created_at).toLocaleDateString('pt-PT', { 
-              month: 'long', 
-              year: 'numeric' 
-            }) : '—'}
-          </p>
-        </div>
-
-        {!isOwnProfile && (
-          <div className="sidebar-section">
-            <Link to="/profile" className="btn btn-secondary btn-small" style={{ width: '100%', justifyContent: 'center' }}>
-              ← Back to my profile
-            </Link>
-          </div>
-        )}
-      </aside>
-
       {/* Add Board Modal */}
       {showAddBoard && isOwnProfile && (
         <AddBoardModal 
@@ -1005,7 +918,7 @@ export default function Profile() {
           </div>
         </div>
       )}
-    </div>
+    </Layout>
   )
 }
 

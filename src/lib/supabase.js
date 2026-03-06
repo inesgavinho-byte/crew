@@ -64,7 +64,6 @@ export const updateProfile = async (userId, updates) => {
 // Crews helpers
 export const getMyCrews = async () => {
   const user = await getCurrentUser()
-  console.log('getMyCrews - user:', user?.id)
   if (!user) return { data: [], error: null }
   
   // Try nested select first
@@ -85,11 +84,8 @@ export const getMyCrews = async () => {
     .eq('user_id', user.id)
     .eq('status', 'active')
   
-  console.log('getMyCrews - nested result:', { data, error })
-  
   // If nested select fails or returns empty crews, fetch separately
   if (data && data.length > 0 && !data[0].crews) {
-    console.log('Nested select failed, fetching crews separately')
     const crewIds = data.map(d => d.crew_id)
     const { data: crewsData } = await supabase
       .from('crews')
@@ -101,22 +97,15 @@ export const getMyCrews = async () => {
       ...d,
       crews: crewsData?.find(c => c.id === d.crew_id) || null
     }))
-    console.log('getMyCrews - merged result:', data)
   }
   
   return { data, error }
 }
 
 export const createCrew = async (name, emoji, description, sport) => {
-  console.log('createCrew called:', { name, emoji, description, sport })
-  
   const { data: { user } } = await supabase.auth.getUser()
-  console.log('Got user:', user?.id)
-  
   if (!user) return { data: null, error: { message: 'Not authenticated' } }
-  
-  // Create crew
-  console.log('Inserting crew...')
+
   const { data: crewData, error: crewError } = await supabase
     .from('crews')
     .insert({
@@ -129,15 +118,12 @@ export const createCrew = async (name, emoji, description, sport) => {
     .select()
     .single()
   
-  console.log('Crew insert result:', { crewData, crewError })
-  
   if (crewError) {
     console.error('Crew insert error:', crewError)
     return { data: null, error: crewError }
   }
   
   // Add creator as admin
-  console.log('Inserting member...')
   const { error: memberError } = await supabase
     .from('crew_members')
     .insert({
@@ -146,8 +132,6 @@ export const createCrew = async (name, emoji, description, sport) => {
       role: 'admin',
       status: 'active'
     })
-  
-  console.log('Member insert error:', memberError)
   
   return { data: crewData.id, error: null }
 }

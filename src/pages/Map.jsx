@@ -6,33 +6,32 @@ import { useAuth } from '../lib/AuthContext'
 import { useNotifications } from '../lib/NotificationContext'
 import { supabase, getSpots, getMyCrews, getSignalsFeed } from '../lib/supabase'
 import { getForecast, degreesToDirection } from '../lib/forecast'
-import { FinLogo, WaveIcon, CrewsIcon, PinIcon, MapIcon, MarketIcon, UserIcon, WindIcon, GlassyIcon, CleanIcon, ChoppyIcon, BlownIcon, FlatIcon, RatingDots, BellIcon, MessageIcon } from '../components/Icons'
+import { WaveIcon, PinIcon, WindIcon, RatingDots, BellIcon } from '../components/Icons'
+import { ConditionIcon } from '../components/Icons'
+import Layout from '../components/Layout'
 import SpotDetail from '../components/SpotDetail'
 import CreateAlertModal from '../components/CreateAlertModal'
 import CheckInModal from '../components/CheckInModal'
 import TideChart from '../components/TideChart'
 import 'leaflet/dist/leaflet.css'
 
-// Condition icon component
-const ConditionIcon = ({ condition, size = 16 }) => {
-  switch(condition) {
-    case 'glassy': return <GlassyIcon size={size} />
-    case 'clean': return <CleanIcon size={size} />
-    case 'choppy': return <ChoppyIcon size={size} />
-    case 'blown': return <BlownIcon size={size} />
-    case 'flat': return <FlatIcon size={size} />
-    default: return <WaveIcon size={size} />
-  }
+// Condition colors for map markers
+const markerColors = {
+  glassy: '#2D8C8C',
+  clean: '#1A1A1A',
+  choppy: '#E88C3A',
+  blown: '#E85D3B',
+  flat: '#888888'
 }
 
-// Single discrete marker icon - all pins look the same
-const signalIcon = L.divIcon({
+// Default marker icon (no signal today)
+const defaultIcon = L.divIcon({
   className: 'signal-marker',
   html: `
     <div style="
       width: 24px;
       height: 24px;
-      background: var(--deep-ocean, #2D4A55);
+      background: #2D4A55;
       border: 2px solid white;
       border-radius: 50%;
       box-shadow: 0 2px 8px rgba(0,0,0,0.25);
@@ -42,6 +41,27 @@ const signalIcon = L.divIcon({
   iconAnchor: [12, 24],
   popupAnchor: [0, -24]
 })
+
+// Condition-based marker icon with colored dot
+const createConditionIcon = (condition) => {
+  const color = markerColors[condition] || '#2D4A55'
+  return L.divIcon({
+    className: 'signal-marker',
+    html: `
+      <div style="
+        width: 28px;
+        height: 28px;
+        background: ${color};
+        border: 3px solid white;
+        border-radius: 50%;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+      "></div>
+    `,
+    iconSize: [28, 28],
+    iconAnchor: [14, 28],
+    popupAnchor: [0, -28]
+  })
+}
 
 // Component to fit map bounds
 function FitBounds({ spots }) {
@@ -215,85 +235,173 @@ export default function Map() {
     flat: '#888888'
   }
 
-  return (
-    <div className="app">
-      {/* Left Sidebar */}
-      <aside className="sidebar-left">
-        <div className="logo">
-          <FinLogo size={36} color="#F5F0E6" waveColor="#5B8A72" />
-          <div>
-            <div className="logo-title">CREW</div>
-            <div className="logo-tagline">no time / no territory</div>
+  const legendExtra = (
+    <div className="sidebar-legend">
+      <h4 style={{ color: '#888', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '12px' }}>
+        Conditions
+      </h4>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+        {Object.entries(conditionColors).map(([name, color]) => (
+          <div key={name} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div style={{
+              width: '14px',
+              height: '14px',
+              borderRadius: '50%',
+              background: color,
+              border: '2px solid white',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.2)'
+            }} />
+            <span style={{ color: '#aaa', fontSize: '13px', textTransform: 'capitalize' }}>{name}</span>
           </div>
+        ))}
+      </div>
+    </div>
+  )
+
+  const rightSidebarContent = selectedSpot ? (
+    <div className="forecast-panel">
+      <div className="forecast-header">
+        <button
+          className="forecast-back"
+          onClick={() => setSelectedSpot(null)}
+        >
+          ← Back
+        </button>
+        <h3 className="forecast-spot-name">{selectedSpot.name}</h3>
+        {selectedSpot.location && (
+          <p className="forecast-location">{selectedSpot.location}</p>
+        )}
+      </div>
+
+      {forecastLoading ? (
+        <div className="forecast-loading">
+          <div className="forecast-loading-spinner" />
+          Loading forecast...
         </div>
+      ) : forecast ? (
+        <>
+          <div className="forecast-days">
+            <h4 className="forecast-section-title">3-Day Forecast</h4>
+            <div className="forecast-days-grid">
+              {forecast.daily.map((day, i) => (
+                <div key={i} className="forecast-day-card">
+                  <span className="forecast-day-name">{day.dayName}</span>
+                  <RatingDots rating={day.rating} size={12} />
+                  <span className="forecast-day-wave">{day.maxWave}m</span>
+                  <span className="forecast-day-wind">{day.avgWind} km/h</span>
+                  <span className="forecast-day-period">{day.avgPeriod}s</span>
+                </div>
+              ))}
+            </div>
+          </div>
 
-        <nav className="nav-menu">
-          <Link to="/" className="nav-link">
-            <WaveIcon size={20} />
-            Feed
-          </Link>
-          <Link to="/crews" className="nav-link">
-            <CrewsIcon size={20} />
-            Crews
-          </Link>
-          <Link to="/map" className="nav-link active">
-            <MapIcon size={20} />
-            Map
-          </Link>
-          <Link to="/messages" className="nav-link">
-            <MessageIcon size={20} />
-            Messages
-          </Link>
-          <Link to="/market" className="nav-link">
-            <MarketIcon size={20} />
-            Market
-          </Link>
-          <Link to="/profile" className="nav-link">
-            <span className="nav-avatar">{profile?.username?.charAt(0).toUpperCase() || 'U'}</span>
-            Profile
-          </Link>
-        </nav>
+          <div className="forecast-hourly">
+            <h4 className="forecast-section-title">Next Hours</h4>
+            <div className="forecast-hourly-list">
+              {forecast.hourly.slice(0, 12).map((hour, i) => (
+                <div key={i} className="forecast-hour-row">
+                  <span className="forecast-hour-time">
+                    {hour.hour.toString().padStart(2, '0')}:00
+                  </span>
+                  <span className="forecast-hour-wave">
+                    {hour.waveHeight.toFixed(1)}m
+                  </span>
+                  <span className="forecast-hour-period">
+                    {hour.wavePeriod.toFixed(0)}s
+                  </span>
+                  <span className="forecast-hour-wind">
+                    {hour.windSpeed.toFixed(0)} km/h {degreesToDirection(hour.windDirection)}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
 
-        <div className="nav-spacer" />
-
-        {/* Legend - Desktop only */}
-        <div className="sidebar-legend">
-          <h4 style={{ color: '#888', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '12px' }}>
-            Conditions
-          </h4>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            {Object.entries(conditionColors).map(([name, color]) => (
-              <div key={name} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <div style={{ 
-                  width: '14px', 
-                  height: '14px', 
-                  borderRadius: '50%', 
-                  background: color,
-                  border: '2px solid white',
-                  boxShadow: '0 1px 3px rgba(0,0,0,0.2)'
-                }} />
-                <span style={{ color: '#aaa', fontSize: '13px', textTransform: 'capitalize' }}>{name}</span>
+          {(() => {
+            const latestSignal = getLatestSignal(selectedSpot.name)
+            if (!latestSignal) return null
+            return (
+              <div className="forecast-current">
+                <h4 className="forecast-section-title">Crew Report</h4>
+                <div className="forecast-signal-card">
+                  <div className="forecast-signal-condition" style={{
+                    background: conditionColors[latestSignal.condition],
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px'
+                  }}>
+                    <ConditionIcon condition={latestSignal.condition} size={14} />
+                    {latestSignal.condition}
+                  </div>
+                  <div className="forecast-signal-details">
+                    {latestSignal.size && (
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                        <WaveIcon size={14} color="var(--seafoam)" />
+                        {latestSignal.size}
+                      </span>
+                    )}
+                    {latestSignal.wind && (
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                        <WindIcon size={14} color="var(--driftwood)" />
+                        {latestSignal.wind}
+                      </span>
+                    )}
+                    {latestSignal.crowd && (
+                      <span className={`forecast-crowd forecast-crowd-${latestSignal.crowd}`}>
+                        {latestSignal.crowd}
+                      </span>
+                    )}
+                  </div>
+                  {latestSignal.note && (
+                    <p className="forecast-signal-note">"{latestSignal.note}"</p>
+                  )}
+                  <p className="forecast-signal-meta">
+                    {latestSignal.username} • {formatTime(latestSignal.created_at)}
+                  </p>
+                </div>
               </div>
-            ))}
-          </div>
+            )
+          })()}
+        </>
+      ) : (
+        <div className="forecast-error">
+          Unable to load forecast
         </div>
-
-        <div className="nav-user">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
-            <div className="avatar">{profile?.username?.charAt(0).toUpperCase()}</div>
-            <span style={{ color: '#fff', fontSize: '14px' }}>{profile?.username}</span>
-          </div>
-          <button 
-            onClick={signOut}
-            style={{ background: 'none', border: 'none', color: '#888', fontSize: '13px', cursor: 'pointer' }}
+      )}
+    </div>
+  ) : (
+    <div className="sidebar-section">
+      <h3 className="sidebar-title">Spots ({spots.length})</h3>
+      <p style={{ fontSize: '13px', color: '#888', marginBottom: '16px' }}>
+        Click a spot for forecast
+      </p>
+      <div style={{ maxHeight: '60vh', overflowY: 'auto' }}>
+        {spots.map(spot => (
+          <div
+            key={spot.id}
+            className="spot-item spot-item-clickable"
+            onClick={() => spot.latitude && setSelectedSpot(spot)}
+            style={{ cursor: spot.latitude ? 'pointer' : 'default' }}
           >
-            Sign out
-          </button>
-        </div>
-      </aside>
+            <PinIcon size={14} />
+            <span className="spot-item-name">
+              {spot.name}
+              <span style={{ color: spot.latitude ? '#2D8C8C' : '#ccc', marginLeft: '4px' }}>
+                {spot.latitude ? '✓' : '✗'}
+              </span>
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
 
-      {/* Main Content - Map */}
-      <main className="main-content" style={{ padding: 0, position: 'relative' }}>
+  return (
+    <Layout
+      sidebarExtra={legendExtra}
+      rightSidebar={rightSidebarContent}
+      mainStyle={{ padding: 0, position: 'relative' }}
+    >
         {loading ? (
           <div className="loading">Loading map...</div>
         ) : error ? (
@@ -491,152 +599,6 @@ export default function Map() {
             </button>
           </div>
         )}
-      </main>
-
-      {/* Right Sidebar */}
-      <aside className="sidebar-right">
-        {selectedSpot ? (
-          <div className="forecast-panel">
-            <div className="forecast-header">
-              <button 
-                className="forecast-back"
-                onClick={() => setSelectedSpot(null)}
-              >
-                ← Back
-              </button>
-              <h3 className="forecast-spot-name">{selectedSpot.name}</h3>
-              {selectedSpot.location && (
-                <p className="forecast-location">{selectedSpot.location}</p>
-              )}
-            </div>
-
-            {forecastLoading ? (
-              <div className="forecast-loading">
-                <div className="forecast-loading-spinner" />
-                Loading forecast...
-              </div>
-            ) : forecast ? (
-              <>
-                {/* 3-Day Overview */}
-                <div className="forecast-days">
-                  <h4 className="forecast-section-title">3-Day Forecast</h4>
-                  <div className="forecast-days-grid">
-                    {forecast.daily.map((day, i) => (
-                      <div key={i} className="forecast-day-card">
-                        <span className="forecast-day-name">{day.dayName}</span>
-                        <RatingDots rating={day.rating} size={12} />
-                        <span className="forecast-day-wave">{day.maxWave}m</span>
-                        <span className="forecast-day-wind">{day.avgWind} km/h</span>
-                        <span className="forecast-day-period">{day.avgPeriod}s</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Hourly Forecast */}
-                <div className="forecast-hourly">
-                  <h4 className="forecast-section-title">Next Hours</h4>
-                  <div className="forecast-hourly-list">
-                    {forecast.hourly.slice(0, 12).map((hour, i) => (
-                      <div key={i} className="forecast-hour-row">
-                        <span className="forecast-hour-time">
-                          {hour.hour.toString().padStart(2, '0')}:00
-                        </span>
-                        <span className="forecast-hour-wave">
-                          {hour.waveHeight.toFixed(1)}m
-                        </span>
-                        <span className="forecast-hour-period">
-                          {hour.wavePeriod.toFixed(0)}s
-                        </span>
-                        <span className="forecast-hour-wind">
-                          {hour.windSpeed.toFixed(0)} km/h {degreesToDirection(hour.windDirection)}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Current conditions from signals */}
-                {(() => {
-                  const latestSignal = getLatestSignal(selectedSpot.name)
-                  if (!latestSignal) return null
-                  return (
-                    <div className="forecast-current">
-                      <h4 className="forecast-section-title">Crew Report</h4>
-                      <div className="forecast-signal-card">
-                        <div className="forecast-signal-condition" style={{ 
-                          background: conditionColors[latestSignal.condition],
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '6px'
-                        }}>
-                          <ConditionIcon condition={latestSignal.condition} size={14} />
-                          {latestSignal.condition}
-                        </div>
-                        <div className="forecast-signal-details">
-                          {latestSignal.size && (
-                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                              <WaveIcon size={14} color="var(--seafoam)" />
-                              {latestSignal.size}
-                            </span>
-                          )}
-                          {latestSignal.wind && (
-                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                              <WindIcon size={14} color="var(--driftwood)" />
-                              {latestSignal.wind}
-                            </span>
-                          )}
-                          {latestSignal.crowd && (
-                            <span className={`forecast-crowd forecast-crowd-${latestSignal.crowd}`}>
-                              {latestSignal.crowd}
-                            </span>
-                          )}
-                        </div>
-                        {latestSignal.note && (
-                          <p className="forecast-signal-note">"{latestSignal.note}"</p>
-                        )}
-                        <p className="forecast-signal-meta">
-                          {latestSignal.username} • {formatTime(latestSignal.created_at)}
-                        </p>
-                      </div>
-                    </div>
-                  )
-                })()}
-              </>
-            ) : (
-              <div className="forecast-error">
-                Unable to load forecast
-              </div>
-            )}
-          </div>
-        ) : (
-          <div className="sidebar-section">
-            <h3 className="sidebar-title">Spots ({spots.length})</h3>
-            <p style={{ fontSize: '13px', color: '#888', marginBottom: '16px' }}>
-              Click a spot for forecast
-            </p>
-            <div style={{ maxHeight: '60vh', overflowY: 'auto' }}>
-              {spots.map(spot => (
-                <div 
-                  key={spot.id} 
-                  className="spot-item spot-item-clickable"
-                  onClick={() => spot.latitude && setSelectedSpot(spot)}
-                  style={{ cursor: spot.latitude ? 'pointer' : 'default' }}
-                >
-                  <PinIcon size={14} />
-                  <span className="spot-item-name">
-                    {spot.name} 
-                    <span style={{ color: spot.latitude ? '#2D8C8C' : '#ccc', marginLeft: '4px' }}>
-                      {spot.latitude ? '✓' : '✗'}
-                    </span>
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-      </aside>
-
       {/* Spot Detail Modal */}
       {showSpotDetail && (
         <SpotDetail 
@@ -681,6 +643,6 @@ export default function Map() {
           addNotification={addNotification}
         />
       )}
-    </div>
+    </Layout>
   )
 }

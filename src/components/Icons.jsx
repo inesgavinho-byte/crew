@@ -359,3 +359,31 @@ export const RatingDots = ({ rating = 3, size = 16 }) => {
     </svg>
   )
 }
+
+// Shared condition icon component
+export const ConditionIcon = ({ condition, size = 18 }) => {
+  switch(condition) {
+    case 'glassy': return <GlassyIcon size={size} />
+    case 'clean': return <CleanIcon size={size} />
+    case 'choppy': return <ChoppyIcon size={size} />
+    case 'blown': return <BlownIcon size={size} />
+    case 'flat': return <FlatIcon size={size} />
+    default: return <WaveIcon size={size} />
+  }
+}
+
+// Shared sport icon component
+export const SportIcon = ({ sport, size = 20, color = 'var(--seafoam)' }) => {
+  const iconProps = { size, color }
+  switch(sport) {
+    case 'surf': return <SurfboardIcon {...iconProps} />
+    case 'bodyboard': return <BodyboardIcon {...iconProps} />
+    case 'sup': return <SupIcon {...iconProps} />
+    case 'kitesurf': return <KiteIcon {...iconProps} />
+    case 'windsurf': return <KiteIcon {...iconProps} />
+    case 'skate': return <SkateIcon {...iconProps} />
+    case 'bike': return <BikeIcon {...iconProps} />
+    case 'run': return <RunIcon {...iconProps} />
+    default: return <TribeIcon {...iconProps} />
+  }
+}
