@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { signIn, signUp, supabase } from '../lib/supabase'
 import { FinLogo } from '../components/Icons'
+import './Auth.css'
 
 const GoogleIcon = () => (
   <svg width="18" height="18" viewBox="0 0 24 24">
@@ -57,15 +58,30 @@ export default function Auth() {
 
   return (
     <div className="auth-page-minimal">
+      {/* Grain overlay */}
+      <svg className="auth-grain" aria-hidden="true">
+        <filter id="grain">
+          <feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch" />
+        </filter>
+        <rect width="100%" height="100%" filter="url(#grain)" />
+      </svg>
+
+      {/* Animated waves */}
+      <div className="auth-waves" aria-hidden="true">
+        <div className="auth-wave" />
+        <div className="auth-wave" />
+        <div className="auth-wave" />
+      </div>
+
       <div className="auth-content">
         {/* Logo */}
         <div className="auth-logo">
-          <FinLogo size={80} color="#F4F1E8" waveColor="#5B8A72" />
+          <FinLogo size={80} color="#e8f4f0" waveColor="#2ec4a0" />
           <h1 className="auth-title">CREW</h1>
           <p className="auth-subtitle">signal your people</p>
         </div>
 
-        {/* Form */}
+        {/* Form Card */}
         <div className="auth-form">
           <h2 className="auth-heading">
             {isSignUp ? 'Join the crew' : 'Welcome back'}
@@ -75,37 +91,46 @@ export default function Auth() {
 
           <form onSubmit={handleSubmit}>
             {isSignUp && (
-              <input
-                type="text"
-                className="auth-input"
-                placeholder="Username"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                required
-              />
+              <div className="auth-input-group">
+                <label className="auth-input-label">Username</label>
+                <input
+                  type="text"
+                  className="auth-input"
+                  placeholder="your handle"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  required
+                />
+              </div>
             )}
 
-            <input
-              type="email"
-              className="auth-input"
-              placeholder="Email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
+            <div className="auth-input-group">
+              <label className="auth-input-label">Email</label>
+              <input
+                type="email"
+                className="auth-input"
+                placeholder="you@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+            </div>
 
-            <input
-              type="password"
-              className="auth-input"
-              placeholder="Password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              minLength={6}
-            />
+            <div className="auth-input-group">
+              <label className="auth-input-label">Password</label>
+              <input
+                type="password"
+                className="auth-input"
+                placeholder="min. 6 characters"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                minLength={6}
+              />
+            </div>
 
-            <button 
-              type="submit" 
+            <button
+              type="submit"
               className="auth-btn-primary"
               disabled={loading}
             >
