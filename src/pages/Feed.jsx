@@ -63,14 +63,14 @@ export default function Feed() {
             .from('profiles')
             .select('username')
             .eq('id', payload.new.user_id)
-            .single()
+            .maybeSingle()
           
           // Get crew info
           const { data: crewData } = await supabase
             .from('crews')
             .select('name, sport')
             .eq('id', payload.new.crew_id)
-            .single()
+            .maybeSingle()
           
           const data = {
             ...payload.new,

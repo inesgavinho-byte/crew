@@ -91,7 +91,7 @@ export default function Profile() {
         .from('profiles')
         .select('*')
         .eq('id', targetUserId)
-        .single()
+        .maybeSingle()
       
       if (profileData) {
         setProfile(profileData)

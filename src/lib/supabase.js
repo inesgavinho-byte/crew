@@ -127,7 +127,7 @@ export const createCrew = async (name, emoji, description, sport) => {
       creator_id: user.id
     })
     .select()
-    .single()
+    .maybeSingle()
 
   if (crewError) {
     console.error('Crew insert error:', crewError)
@@ -253,7 +253,7 @@ export const createSignal = async (crewId, spotName, condition, size, wind, crow
       note: note
     })
     .select()
-    .single()
+    .maybeSingle()
   return { data, error }
 }
 
@@ -358,7 +358,7 @@ export const sendChatMessage = async (crewId, userId, username, message) => {
       content: message
     })
     .select()
-    .single()
+    .maybeSingle()
 }
 
 export const sendPhotoMessage = async (crewId, userId, username, photoUrl, caption) => {
@@ -373,7 +373,7 @@ export const sendPhotoMessage = async (crewId, userId, username, photoUrl, capti
       content: caption || null
     })
     .select()
-    .single()
+    .maybeSingle()
 }
 
 export const sendLocationMessage = async (crewId, userId, username, spotName) => {
@@ -387,7 +387,7 @@ export const sendLocationMessage = async (crewId, userId, username, spotName) =>
       spot_name: spotName
     })
     .select()
-    .single()
+    .maybeSingle()
 }
 
 export const sendPollMessage = async (crewId, userId, username, question) => {
@@ -402,7 +402,7 @@ export const sendPollMessage = async (crewId, userId, username, question) => {
       poll_responses: []
     })
     .select()
-    .single()
+    .maybeSingle()
 }
 
 export const respondToPoll = async (messageId, oldResponses, userId, username, response) => {
@@ -484,7 +484,7 @@ export const getListing = async (listingId) => {
     .from('board_listings')
     .select('*')
     .eq('id', listingId)
-    .single()
+    .maybeSingle()
 }
 
 export const createListing = async (listing) => {
@@ -492,7 +492,7 @@ export const createListing = async (listing) => {
     .from('board_listings')
     .insert(listing)
     .select()
-    .single()
+    .maybeSingle()
 }
 
 export const updateListing = async (listingId, updates) => {
@@ -501,7 +501,7 @@ export const updateListing = async (listingId, updates) => {
     .update({ ...updates, updated_at: new Date().toISOString() })
     .eq('id', listingId)
     .select()
-    .single()
+    .maybeSingle()
 }
 
 export const deleteListing = async (listingId) => {
@@ -528,7 +528,7 @@ export const expressInterest = async (listingId, userId, username, message) => {
       message: message || null
     })
     .select()
-    .single()
+    .maybeSingle()
 }
 
 export const getInterestsForListing = async (listingId) => {
@@ -621,7 +621,7 @@ export const createSpotReview = async (review) => {
     .from('spot_reviews')
     .upsert(review, { onConflict: 'spot_name,user_id' })
     .select()
-    .single()
+    .maybeSingle()
 }
 
 export const deleteSpotReview = async (reviewId) => {
@@ -656,7 +656,7 @@ export const createSession = async (session) => {
     .from('sessions')
     .insert(session)
     .select()
-    .single()
+    .maybeSingle()
 }
 
 export const updateSession = async (sessionId, updates) => {
@@ -665,7 +665,7 @@ export const updateSession = async (sessionId, updates) => {
     .update(updates)
     .eq('id', sessionId)
     .select()
-    .single()
+    .maybeSingle()
 }
 
 export const deleteSession = async (sessionId) => {
@@ -705,7 +705,7 @@ export const createAlert = async (alert) => {
     .from('condition_alerts')
     .insert(alert)
     .select()
-    .single()
+    .maybeSingle()
 }
 
 export const updateAlert = async (alertId, updates) => {
@@ -714,7 +714,7 @@ export const updateAlert = async (alertId, updates) => {
     .update(updates)
     .eq('id', alertId)
     .select()
-    .single()
+    .maybeSingle()
 }
 
 export const deleteAlert = async (alertId) => {
@@ -746,7 +746,7 @@ export const getCrewInviteCode = async (crewId) => {
     .from('crews')
     .select('invite_code, is_public')
     .eq('id', crewId)
-    .single()
+    .maybeSingle()
 }
 
 // Regenerate invite code
@@ -757,7 +757,7 @@ export const regenerateInviteCode = async (crewId) => {
     .update({ invite_code: newCode })
     .eq('id', crewId)
     .select('invite_code')
-    .single()
+    .maybeSingle()
 }
 
 // Toggle crew public/private
@@ -796,7 +796,7 @@ export const sendCrewInvite = async (crewId, invitedUserId, invitedBy) => {
       invited_by: invitedBy
     })
     .select()
-    .single()
+    .maybeSingle()
 }
 
 // Get pending invites for user
@@ -880,7 +880,7 @@ export const isCrewAdmin = async (crewId, userId) => {
     .select('role')
     .eq('crew_id', crewId)
     .eq('user_id', userId)
-    .single()
+    .maybeSingle()
   
   return data?.role === 'admin'
 }
@@ -1018,7 +1018,7 @@ export const getFollowStatus = async (targetUserId) => {
     .select('status')
     .eq('follower_id', user.id)
     .eq('following_id', targetUserId)
-    .single()
+    .maybeSingle()
   
   // Check if they follow me
   const { data: theyFollowData } = await supabase
@@ -1026,7 +1026,7 @@ export const getFollowStatus = async (targetUserId) => {
     .select('status')
     .eq('follower_id', targetUserId)
     .eq('following_id', user.id)
-    .single()
+    .maybeSingle()
   
   return {
     iFollow: iFollowData?.status || null,
@@ -1158,7 +1158,7 @@ export const getOrCreateConversation = async (otherUserId) => {
     .select('*')
     .eq('user1_id', user1)
     .eq('user2_id', user2)
-    .single()
+    .maybeSingle()
   
   if (existing) return { data: existing, error: null }
   
@@ -1167,7 +1167,7 @@ export const getOrCreateConversation = async (otherUserId) => {
     .from('conversations')
     .insert({ user1_id: user1, user2_id: user2 })
     .select()
-    .single()
+    .maybeSingle()
   
   return { data, error }
 }
@@ -1207,7 +1207,7 @@ export const getConversations = async () => {
       .eq('conversation_id', conv.id)
       .order('created_at', { ascending: false })
       .limit(1)
-      .single()
+      .maybeSingle()
     
     // Get unread count
     const { count } = await supabase
@@ -1254,7 +1254,7 @@ export const sendDirectMessage = async (conversationId, content) => {
       content
     })
     .select()
-    .single()
+    .maybeSingle()
   
   if (error) return { data: null, error }
   

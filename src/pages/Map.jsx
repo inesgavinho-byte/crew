@@ -163,7 +163,7 @@ export default function Map() {
             .from('signals_feed')
             .select('*')
             .eq('id', payload.new.id)
-            .single()
+            .maybeSingle()
           
           if (data) {
             setSignals(prev => [data, ...prev])
