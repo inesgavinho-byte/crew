@@ -37,7 +37,7 @@ export default function CrewDetail() {
         .from('crews')
         .select('*')
         .eq('id', crewId)
-        .single()
+        .maybeSingle()
       
       if (crewError) throw crewError
       setCrew(crewData)
@@ -91,7 +91,7 @@ export default function CrewDetail() {
         .select('id')
         .eq('membership_id', membershipId)
         .eq('voter_id', user.id)
-        .single()
+        .maybeSingle()
 
       if (existingVote) {
         // Update existing vote

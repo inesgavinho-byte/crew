@@ -76,7 +76,7 @@ export default function Messages() {
             .from('conversations')
             .select('id, user1_id, user2_id')
             .eq('id', newMsg.conversation_id)
-            .single()
+            .maybeSingle()
           
           if (!conv) return
           if (conv.user1_id !== user.id && conv.user2_id !== user.id) return
