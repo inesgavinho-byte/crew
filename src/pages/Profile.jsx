@@ -129,13 +129,13 @@ export default function Profile() {
         .order('is_favorite', { ascending: false })
       if (boardsData) setBoards(boardsData)
 
-      // Load photos
-      const { data: photosData } = await supabase
-        .from('photos')
-        .select('*')
-        .eq('user_id', targetUserId)
-        .order('created_at', { ascending: false })
-      if (photosData) setPhotos(photosData)
+      // TODO: 'photos' table does not exist in the Supabase schema yet. Create the table before enabling this query.
+      // const { data: photosData } = await supabase
+      //   .from('photos')
+      //   .select('*')
+      //   .eq('user_id', targetUserId)
+      //   .order('created_at', { ascending: false })
+      // if (photosData) setPhotos(photosData)
 
       // Load market listings
       if (isOwnProfile) {
@@ -1132,15 +1132,16 @@ function AddPhotoModal({ userId, onClose, onSuccess }) {
     setError('')
 
     try {
-      const photoUrl = await uploadImage(photoFile, 'photos')
-
-      const { error } = await supabase.from('photos').insert({
-        user_id: userId,
-        url: photoUrl,
-        caption: caption.trim() || null,
-        spot_name: spotName.trim() || null
-      })
-      if (error) throw error
+      // TODO: 'photos' table does not exist in the Supabase schema yet. Create the table before enabling this insert.
+      // const photoUrl = await uploadImage(photoFile, 'photos')
+      // const { error } = await supabase.from('photos').insert({
+      //   user_id: userId,
+      //   url: photoUrl,
+      //   caption: caption.trim() || null,
+      //   spot_name: spotName.trim() || null
+      // })
+      // if (error) throw error
+      throw new Error('Photo uploads are not yet available. The photos table needs to be created in Supabase.')
       onSuccess()
     } catch (err) {
       setError(err.message)
