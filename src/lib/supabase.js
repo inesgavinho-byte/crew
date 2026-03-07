@@ -106,6 +106,17 @@ export const createCrew = async (name, emoji, description, sport) => {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { data: null, error: { message: 'Not authenticated' } }
 
+  // Fetch profile to get username (required for crew_members)
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('username')
+    .eq('id', user.id)
+    .single()
+
+  if (!profile?.username) {
+    return { data: null, error: { message: 'Username not found. Please set up your profile first.' } }
+  }
+
   const { data: crewData, error: crewError } = await supabase
     .from('crews')
     .insert({
@@ -113,26 +124,27 @@ export const createCrew = async (name, emoji, description, sport) => {
       emoji: emoji || '🌊',
       description: description,
       sport: sport || 'surf',
-      created_by: user.id
+      creator_id: user.id
     })
     .select()
     .single()
-  
+
   if (crewError) {
     console.error('Crew insert error:', crewError)
     return { data: null, error: crewError }
   }
-  
+
   // Add creator as admin
   const { error: memberError } = await supabase
     .from('crew_members')
     .insert({
       crew_id: crewData.id,
       user_id: user.id,
+      username: profile.username,
       role: 'admin',
       status: 'active'
     })
-  
+
   return { data: crewData.id, error: null }
 }
 
