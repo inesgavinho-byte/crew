@@ -15,6 +15,7 @@ const Market = lazy(() => import('./pages/Market'))
 const Profile = lazy(() => import('./pages/Profile'))
 const Messages = lazy(() => import('./pages/Messages'))
 const Join = lazy(() => import('./pages/Join'))
+const PortalLayout = lazy(() => import('./portal/PortalLayout'))
 
 const PageLoader = () => (
   <div className="loading" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh' }}>
@@ -86,6 +87,11 @@ function App() {
             <Route path="/profile/:userId" element={
               <ProtectedRoute>
                 <Profile />
+              </ProtectedRoute>
+            } />
+            <Route path="/portal" element={
+              <ProtectedRoute>
+                <PortalLayout />
               </ProtectedRoute>
             } />
             <Route path="*" element={<Navigate to="/" />} />
